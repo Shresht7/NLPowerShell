@@ -25,20 +25,33 @@ Set-PSReadLineKeyHandler -Key "Ctrl+Shift+RightArrow" `
 
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$Line, [ref]$Cursor)
 
-    # Exit if not a comment
-    if (-Not $Line.StartsWith("#")) { return }
-
-    # get response from the Get-NLPowerShellCommand function
-    $Output = Get-NLPowerShellCommand -Line $Line
+    if ($Line.StartsWith("#")) {
+        # get response from the Get-NLPowerShellCommand function
+        $Output = Get-NLPowerShellCommand -Line $Line
+        
+        # exit if the output is null
+        if ($null -eq $Output) { return }
     
-    # exit if the output is null
-    if ($null -eq $Output) { return }
+        [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
+        foreach ($Str in $Output) {
+            if ($null -ne $Str -and $Str -ne "") {
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Str)
+            }
+        }
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" $Line")
+    }
+    else {
+        # get response from the Get-NLPowerShellExplanation function
+        $Output = Get-NLPowerShellExplanation -Line $Line
 
-    [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
-    foreach ($Str in $Output) {
-        if ($null -ne $Str -and $Str -ne "") {
-            [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Str)
+        # exit if the output is null
+        if ($null -eq $Output) { return }
+
+        foreach ($Str in $Output) {
+            if ($null -ne $Str -and $Str -ne "") {
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    # $Str")
+            }
         }
     }
-    [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" $Line")
+
 }
