@@ -2,7 +2,14 @@
 .SYNOPSIS
     Convert the given natural language prompt to PowerShell commands
 #>
-function Get-NLPowerShellCommand([string] $Line) {
+function Get-NLPowerShellCommand(
+    # The comment to parse
+    [Parameter(Mandatory)]
+    [Alias("Line")]
+    [string] $Comment
+) {
+    $Prompt = "Write powershell command to do the following: $Comment"
+    
     $RequestParams = @{
         Uri            = "https://api.openai.com/v1/completions"
         Method         = "POST"
@@ -13,13 +20,13 @@ function Get-NLPowerShellCommand([string] $Line) {
         }
         Body           = @{
             model  = "text-davinci-003"
-            prompt = "Write powershell commands to $Line"
+            prompt = $Prompt
         } | ConvertTo-Json
     }
 
     $Response = Invoke-WebRequest @RequestParams
 
     # Best Fit
-    $Result = $Response.Content | ConvertFrom-Json
-    return $Result.choices[0].text
+    $Result = ($Response.Content | ConvertFrom-Json).choices[0]
+    return $Result.text
 }
