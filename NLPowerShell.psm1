@@ -2,7 +2,7 @@
 $Script:CONFIG = $null
 $Script:CONFIG_PATH = "$PSScriptRoot\.openairc"
 
-# Import Library
+# Import PowerShell Scripts
 Get-ChildItem -Path . -Recurse -Filter "*.ps1" | ForEach-Object {
     . $_.FullName -Force
 }
