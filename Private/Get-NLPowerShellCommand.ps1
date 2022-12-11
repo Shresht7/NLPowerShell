@@ -9,7 +9,7 @@ function Get-NLPowerShellCommand(
     [string] $Comment
 ) {
     $Prompt = "Write powershell command to do the following: $Comment"
-    
+
     $RequestParams = @{
         Uri            = "https://api.openai.com/v1/completions"
         Method         = "POST"
@@ -19,7 +19,7 @@ function Get-NLPowerShellCommand(
             "Content-Type" = "application/json"
         }
         Body           = @{
-            model  = "text-davinci-003"
+            model  = $Script:CONFIG.MODEL_NAME
             prompt = $Prompt
         } | ConvertTo-Json
     }
