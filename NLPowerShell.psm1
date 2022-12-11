@@ -28,8 +28,8 @@ Set-PSReadLineKeyHandler -Key "Ctrl+Shift+RightArrow" `
     # Exit if not a comment
     if (-Not $Line.StartsWith("#")) { return }
 
-    # get response from Get-Completion function
-    $Output = Get-Completion -Line $Line
+    # get response from the Get-NLPowerShellCommand function
+    $Output = Get-NLPowerShellCommand -Line $Line
     
     # exit if the output is null
     if ($null -eq $Output) { return }
