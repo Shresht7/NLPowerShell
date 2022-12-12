@@ -8,7 +8,7 @@ function Get-NLPowerShellCommand(
     [Alias("Line")]
     [string] $Comment
 ) {
-    $Prompt = "Write powershell command to do the following: $Comment"
+    $Prompt = "<# PowerShell #>`n# Write a PowerShell command to do $Comment`:`n"
 
     $RequestParams = @{
         Uri            = "https://api.openai.com/v1/completions"
@@ -19,8 +19,12 @@ function Get-NLPowerShellCommand(
             "Content-Type" = "application/json"
         }
         Body           = @{
-            model  = $Script:CONFIG.MODEL_NAME
-            prompt = $Prompt
+            model       = $Script:CONFIG.MODEL_NAME
+            prompt      = $Prompt
+            max_tokens  = $Script:CONFIG.MAX_TOKENS
+            temperature = $Script:CONFIG.TEMPERATURE
+            n           = $Script:CONFIG.N
+            stop        = @("#")
         } | ConvertTo-Json
     }
 
@@ -28,5 +32,5 @@ function Get-NLPowerShellCommand(
 
     # Best Fit
     $Result = ($Response.Content | ConvertFrom-Json).choices[0]
-    return $Result.text
+    return $Result.text.Trim()
 }
