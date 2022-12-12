@@ -1,35 +1,29 @@
 <#
 .SYNOPSIS
-    Explains the current line using OpenAI
+    Returns an explanation of the given line of PowerShell code
+.DESCRIPTION
+    The Get-NLPowerShellExplanation function returns an explanation
+    of the given line of PowerShell code, using the OpenAI API.
+.NOTES
+    This function uses the OpenAI API to generate the explanation.
+    You must provide a valid API key and model name in the CONFIG script variable to use this function.
 #>
 function Get-NLPowerShellExplanation(
-    # The line to explain
+    # The line of PowerShell code to explain
     [Parameter(Mandatory)]
     [string] $Line
 ) {
+    # Return null if no line was given
+    if (-not $PSBoundParameters.ContainsKey("Line")) { return $null }
+
+    # The prompt for OpenAI
     $Prompt = "Explain, using imperative speech, the following PowerShell command in a single line:`n$Line"
 
-    $RequestParams = @{
-        Uri            = "https://api.openai.com/v1/completions"
-        Method         = "POST"
-        Authentication = "Bearer"
-        Token          = $Script:CONFIG.API_KEY
-        Headers        = @{
-            "Content-Type" = "application/json"
-        }
-        Body           = @{
-            model       = $Script:CONFIG.MODEL_NAME
-            prompt      = $Prompt
-            max_tokens  = $Script:CONFIG.MAX_TOKENS
-            temperature = $Script:CONFIG.TEMPERATURE
-            n           = $Script:CONFIG.N
-            stop        = @("#")
-        } | ConvertTo-Json
-    }
+    # Invoke the OpenAI API
+    $Response = Invoke-OpenAICompletion -Prompt $Prompt
 
-    $Response = Invoke-WebRequest @RequestParams
+    # Get the best-fit result and process it for output
+    $Result = $Response.choices[0].text.Trim()
 
-    # Best Fit
-    $Result = ($Response.Content | ConvertFrom-Json).choices[0]
-    return $Result.text.Trim()
+    return $Result
 }
