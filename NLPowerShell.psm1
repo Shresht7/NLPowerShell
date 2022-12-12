@@ -38,7 +38,7 @@ Set-PSReadLineKeyHandler -Key "Ctrl+Shift+RightArrow" `
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Str)
             }
         }
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" $Line")
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    $Line")
     }
     else {
         # get response from the Get-NLPowerShellExplanation function
