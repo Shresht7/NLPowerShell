@@ -1,4 +1,14 @@
-function Get-NLPowerShellExplanation([string] $Line) {
+<#
+.SYNOPSIS
+    Explains the current line using OpenAI
+#>
+function Get-NLPowerShellExplanation(
+    # The line to explain
+    [Parameter(Mandatory)]
+    [string] $Line
+) {
+    $Prompt = "Explain, using imperative speech, the following PowerShell command in a single line:`n$Line"
+
     $RequestParams = @{
         Uri            = "https://api.openai.com/v1/completions"
         Method         = "POST"
@@ -8,8 +18,12 @@ function Get-NLPowerShellExplanation([string] $Line) {
             "Content-Type" = "application/json"
         }
         Body           = @{
-            model  = "text-davinci-003"
-            prompt = "Explain the following powershell command in a single line:`n$Line"
+            model       = $Script:CONFIG.MODEL_NAME
+            prompt      = $Prompt
+            max_tokens  = $Script:CONFIG.MAX_TOKENS
+            temperature = $Script:CONFIG.TEMPERATURE
+            n           = $Script:CONFIG.N
+            stop        = @("#")
         } | ConvertTo-Json
     }
 
@@ -17,5 +31,5 @@ function Get-NLPowerShellExplanation([string] $Line) {
 
     # Best Fit
     $Result = ($Response.Content | ConvertFrom-Json).choices[0]
-    return $($Result.text)
+    return $Result.text.Trim()
 }
