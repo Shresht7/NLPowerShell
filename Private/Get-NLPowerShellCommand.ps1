@@ -1,36 +1,36 @@
 <#
 .SYNOPSIS
-    Convert the given natural language prompt to PowerShell commands
+    Converts a natural language prompt to a PowerShell command
+.DESCRIPTION
+    The Get-CommandCompletion function takes a natural language prompt as input
+    and uses the OpenAI API to generate a corresponding PowerShell command
+.PARAMETER Comment
+    The natural language prompt to convert to a PowerShell command.
+    This parameter is mandatory and should not be empty or null.
+.OUTPUTS
+    System.String. The generated PowerShell command.
+.NOTES
+    This function uses the OpenAI API to generate the PowerShell command.
+    You must provide a valid API key and model name in the CONFIG script variable to use this function.
 #>
 function Get-NLPowerShellCommand(
     # The comment to parse
     [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
     [Alias("Line")]
     [string] $Comment
 ) {
-    $Prompt = "<# PowerShell #>`n# Write a PowerShell command to do $Comment`:`n"
+    # Return null if no comment was given
+    if (-not $PSBoundParameters.ContainsKey("Comment")) { return $null }
 
-    $RequestParams = @{
-        Uri            = "https://api.openai.com/v1/completions"
-        Method         = "POST"
-        Authentication = "Bearer"
-        Token          = $Script:CONFIG.API_KEY
-        Headers        = @{
-            "Content-Type" = "application/json"
-        }
-        Body           = @{
-            model       = $Script:CONFIG.MODEL_NAME
-            prompt      = $Prompt
-            max_tokens  = $Script:CONFIG.MAX_TOKENS
-            temperature = $Script:CONFIG.TEMPERATURE
-            n           = $Script:CONFIG.N
-            stop        = @("#")
-        } | ConvertTo-Json
-    }
+    # The prompt for OpenAI
+    $Prompt = "<# PowerShell #>`n# Write a PowerShell command to do the following:`n$Comment`n"
 
-    $Response = Invoke-WebRequest @RequestParams
+    # Invoke the OpenAI Completions API
+   $Response = Invoke-OpenAICompletion -Prompt $Prompt
 
-    # Best Fit
-    $Result = ($Response.Content | ConvertFrom-Json).choices[0]
-    return $Result.text.Trim()
+    # Get the best-fit result and process it for output
+    $Result = $Response.choices[0].text.Trim()
+
+    return $Result
 }
