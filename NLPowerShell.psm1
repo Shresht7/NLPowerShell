@@ -14,11 +14,9 @@ if (-Not (Test-Path -Path $Script:CONFIG_PATH)) { return }
 $Script:CONFIG = Import-Clixml -Path $Script:CONFIG_PATH
     
 # Register the PSReadLineKeyHandler
-$PSReadLineKeyHandlerOptions = @{
-    Key              = "Ctrl+Shift+RightArrow"
-    BriefDescription = "Use Natural Language to interact with PowerShell"
-}
-Set-PSReadLineKeyHandler @PSReadLineKeyHandlerOptions -ScriptBlock {
+Set-PSReadLineKeyHandler -Key Ctrl+Insert `
+    -BriefDescription "Use Natural Language to interact with PowerShell" `
+    -ScriptBlock {
     param ($Key, $Arg)
 
     # Instantiate $Line and $Cursor
