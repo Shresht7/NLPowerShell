@@ -28,7 +28,7 @@ function Set-NLPowerShellConfig(
     # The token count of your prompt + the max tokens cannot exceed the model's context length.
     # Most models have a context length of 2048 tokens (except for the newest models that have 4096)
     [ValidateRange(0, 4096)]
-    [int] $MaxTokens = 32,
+    [int] $MaxTokens = 64,
 
     # The sampling temperature to use. Higher values means the model will take more risks.
     # Try 0.9 for more creative applications, and 0 for ones with a well-defined answer.
