@@ -2,11 +2,17 @@
 .SYNOPSIS
     Update the NLPowerShell Config File
 .DESCRIPTION
-    Update the NLPowerShell Config File
+    Update the NLPowerShell Config File.
+    The config file keeps track of the `API_KEY` and `Organization`;
+    and parameters like `Model Name`, `Max Tokens`, `Temperature`, and `N`.
+.EXAMPLE
+    Set-NLPowerShellConfig -API_KEY $API_KEY -Organization $Organization
+.EXAMPLE
+    Set-NLPowerShellConfig -API_KEY $API_KEY -Organization $Organization -ModelName "text-davinci-003" -MaxTokens 64 -Temperature 0.1 -N 1
 #>
 function Set-NLPowerShellConfig(
-    # OpenAI API_KEY for authentication. This is used to make api requests.
-    # The API_KEY is a secret. Do not expose it as plain-text
+    # OpenAI `API_KEY` for authentication. This is used to make api requests.
+    # The `API_KEY` is a **secret**. _Do not expose it as plain-text_
     [securestring] $API_KEY,
 
     # Users can belong to multiple organizations, you can specify which
