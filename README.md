@@ -4,7 +4,7 @@ Use natural language to interact with PowerShell. Powered by OpenAI.
 
 Inspiration: https://github.com/microsoft/Codex-CLI
 
-> **NOTE**: _Nothing is perfect!_ Read and check the commands thoroughly before you run them. Treat the AI generated commands as commands you find on the _internet_ (because they are commands from the internet). **Do not run** a command that you **do not understand**.
+> **NOTE**: _Nothing is perfect!_ Read and check the commands thoroughly before you run them. Treat the AI generated commands as commands you find on the _internet_ (because they **are** commands from the internet). **Do not run** a command that you **do not understand**.
 
 ## Features
 
@@ -14,7 +14,7 @@ Inspiration: https://github.com/microsoft/Codex-CLI
 PS> # Get a list of the 5 most CPU intensive processes
 ```
 
-Hit <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>RightArrow</kbd>
+Hit <kbd>Ctrl</kbd> + <kbd>Insert</kbd>
 
 ```powershell
 PS> Get-Process | Sort-Object CPU -Descending | Select-Object -First 5    # Get a list of the 5 most CPU intensive processes
@@ -26,7 +26,7 @@ PS> Get-Process | Sort-Object CPU -Descending | Select-Object -First 5    # Get 
 PS> Get-Command | Get-Random | Get-Help -Full
 ```
 
-Hit <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>RightArrow</kbd>
+Hit <kbd>Ctrl</kbd> + <kbd>Insert</kbd>
 
 ```powershell
 PS> Get-Command | Get-Random | Get-Help -Full   # Retrieve a random command and display its full help information.
@@ -45,7 +45,7 @@ gh repo clone Shresht7/NLPowerShell
 or 
 
 ```powershell
-git clone https://...
+git clone https://github.com/Shresht7/NLPowerShell.git
 ```
 
 ### 2. Import this module
@@ -70,15 +70,15 @@ Set-NLPowerShellConfig -API_KEY (Read-Host "API_KEY" -AsSecureString)
 Import-Module <Path\To\This\Module>
 ```
 
-### 5. Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>RightArrow</kbd> to invoke the natural-language handler.
+### 5. Press <kbd>Ctrl</kbd> + <kbd>Insert</kbd> to invoke the natural-language handler.
 
-- `PS> # Get a list of markdown files` <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>RightArrow</kbd>
+- `PS> # Get a list of markdown files` <kbd>Ctrl</kbd> + <kbd>Insert</kbd>
 
 ```powershell
 PS> Get-ChildItem -Path . -Filter "*.md"    # Get a list of markdown files
 ```
 
-- `PS> Get-Date` <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>RightArrow</kbd>
+- `PS> Get-Date` <kbd>Ctrl</kbd> + <kbd>Insert</kbd>
 ```powershell
 PS> Get-Date    # Get the current date
 ```
