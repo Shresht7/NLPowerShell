@@ -4,6 +4,8 @@ Use natural language to interact with PowerShell. Powered by OpenAI.
 
 Inspiration: https://github.com/microsoft/Codex-CLI
 
+![Demonstration](Docs/demo.gif)
+
 > **NOTE**: _Nothing is perfect!_ Read and check the commands thoroughly before you run them. Treat the AI generated commands as commands you find on the _internet_ (because they **are** commands from the internet). **Do not run** a command that you **do not understand**.
 
 ## Features
