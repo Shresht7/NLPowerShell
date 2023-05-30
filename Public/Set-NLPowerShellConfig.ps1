@@ -13,6 +13,8 @@
 function Set-NLPowerShellConfig(
     # OpenAI `API_KEY` for authentication. This is used to make api requests.
     # The `API_KEY` is a **secret**. _Do not expose it as plain-text_
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
     [securestring] $API_KEY,
 
     # Users can belong to multiple organizations, you can specify which
@@ -22,6 +24,7 @@ function Set-NLPowerShellConfig(
 
     # ID of the model to use.
     [Alias("Name", "Model")]
+    [ValidateSet("text-davinci-003")]   # TODO: Add support for more models
     [string] $ModelName = "text-davinci-003",
 
     # The maximum number of tokens to generate in the completion.

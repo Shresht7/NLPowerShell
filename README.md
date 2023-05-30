@@ -8,6 +8,8 @@ Inspiration: https://github.com/microsoft/Codex-CLI
 
 > **NOTE**: _Nothing is perfect!_ Read and check the commands thoroughly before you run them. Treat the AI generated commands as commands you find on the _internet_ (because they **are** commands from the internet). **Do not run** a command that you **do not understand**.
 
+---
+
 ## Features
 
 ### Convert Natural-Language to PowerShell Commands
@@ -84,3 +86,9 @@ PS> Get-ChildItem -Path . -Filter "*.md"    # Get a list of markdown files
 ```powershell
 PS> Get-Date    # Get the current date
 ```
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](./LICENSE)

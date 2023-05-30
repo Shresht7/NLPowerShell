@@ -13,6 +13,10 @@ if (-Not (Test-Path -Path $Script:CONFIG_PATH)) { return }
 # Import the config file
 $Script:CONFIG = Import-Clixml -Path $Script:CONFIG_PATH
     
+# ====================
+# NLPowerShell Handler
+# ====================
+
 # Register the PSReadLineKeyHandler
 Set-PSReadLineKeyHandler -Key Ctrl+Insert `
     -BriefDescription "Use Natural Language to interact with PowerShell" `
