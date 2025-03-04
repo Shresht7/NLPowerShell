@@ -10,19 +10,31 @@ function Invoke-OllamaCompletion(
     # The prompt to use for completion
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string] $Prompt
+    [string] $Prompt,
+
+    # The URL of the API endpoint
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string] $URL = "http://localhost:11434",
+
+    # The ollama model to use
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string] $Model = "llama3.2"
 ) {
+    $APIEndpoint = "$URL/api/generate"
+
     # Request Parameters
     $RequestParams = @{
-        Uri     = "http://localhost:11434/api/generate"
+        Uri     = $APIEndpoint
         Method  = "POST"
         Headers = @{
             "Content-Type" = "application/json"
         }
         Body    = @{
-            model  = "llama3.2"
+            model  = $Model
             prompt = $Prompt
-            stream = $True
+            stream = $False
         } | ConvertTo-Json
     }
 
