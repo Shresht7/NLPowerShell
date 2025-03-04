@@ -17,11 +17,20 @@ function Get-NLPowerShellExplanation(
     if (-not $PSBoundParameters.ContainsKey("Line")) { return $null }
 
     # The prompt for OpenAI
-    $Prompt = "Explain, using imperative speech, the following PowerShell command in a single line:`n$Line"
-
-    # Invoke the OpenAI API
+    # Invoke the completion based on the provider
+    switch ($Script:CONFIG.LLM_Provider) {
+        "ollama" {
+            $Response = Invoke-OllamaCompletion -Prompt $Prompt
+        }
+        "openai" { 
+            $Response = "Response from OpenAI"
     # $Response = Invoke-OpenAICompletion -Prompt $Prompt
+        }
+        Default {
+            # Default to ollama
     $Response = Invoke-OllamaCompletion -Prompt $Prompt
+        }
+    }
 
     return $Response
 }

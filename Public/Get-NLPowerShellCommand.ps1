@@ -21,9 +21,20 @@ function Get-NLPowerShellCommand(
     # The prompt for OpenAI
     $Prompt = "<# PowerShell #>`n# Write a PowerShell command to do the following:`n$Comment`n"
 
-    # Invoke the OpenAI Completions API
-    # $Response = Invoke-OpenAICompletion -Prompt $Prompt
-    $Response = Invoke-OllamaCompletion -Prompt $Prompt
+    # Invoke the completion based on the provider
+    switch ($Script:CONFIG.LLM_Provider) {
+        "ollama" {
+            $Response = Invoke-OllamaCompletion -Prompt $Prompt
+        }
+        "openai" { 
+            $Response = "Response from OpenAI"
+            # $Response = Invoke-OpenAICompletion -Prompt $Prompt
+        }
+        Default {
+            # Default to ollama
+            $Response = Invoke-OllamaCompletion -Prompt $Prompt
+        }
+    }
 
     return $Response
 }
