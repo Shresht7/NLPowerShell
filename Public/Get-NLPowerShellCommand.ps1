@@ -22,10 +22,12 @@ function Get-NLPowerShellCommand(
     $Prompt = "<# PowerShell #>`n# Write a PowerShell command to do the following:`n$Comment`n"
 
     # Invoke the OpenAI Completions API
-    $Response = Invoke-OpenAICompletion -Prompt $Prompt
+    # $Response = Invoke-OpenAICompletion -Prompt $Prompt
+    $Response = Invoke-OllamaCompletion -Prompt $Prompt
 
     # Get the best-fit result and process it for output
-    $Result = $Response.choices[0].text.Trim()
+    # $Result = $Response.choices[0].text.Trim()
+    $Result = $Response
 
     return $Result
 }

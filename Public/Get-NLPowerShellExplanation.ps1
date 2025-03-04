@@ -20,10 +20,12 @@ function Get-NLPowerShellExplanation(
     $Prompt = "Explain, using imperative speech, the following PowerShell command in a single line:`n$Line"
 
     # Invoke the OpenAI API
-    $Response = Invoke-OpenAICompletion -Prompt $Prompt
+    # $Response = Invoke-OpenAICompletion -Prompt $Prompt
+    $Response = Invoke-OllamaCompletion -Prompt $Prompt
 
     # Get the best-fit result and process it for output
-    $Result = $Response.choices[0].text.Trim()
+    # $Result = $Response.choices[0].text.Trim()
+    $Result = $Response
 
     return $Result
 }
