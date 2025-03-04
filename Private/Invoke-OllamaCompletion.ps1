@@ -40,5 +40,7 @@ function Invoke-OllamaCompletion(
 
     # Make the API Request and return the response
     $Response = Invoke-RestMethod @RequestParams
+    $Response = $Response.response.Trim()
+
     return $Response.response.Trim()
 }

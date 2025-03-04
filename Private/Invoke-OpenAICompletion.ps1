@@ -34,5 +34,9 @@ function Invoke-OpenAICompletion(
 
     # Make the API Request and return the response
     $Response = Invoke-RestMethod @RequestParams
+    
+    # Get the best-fit result and process it for output
+    $Response = $Response.choices[0].text.Trim()
+
     return $Response
 }
