@@ -17,6 +17,20 @@ function Get-NLPowerShellExplanation(
     if (-not $PSBoundParameters.ContainsKey("Line")) { return $null }
 
     # The prompt for OpenAI
+    $Prompt = "
+        Explain, using imperative speech, the following PowerShell command in one single line using as few words as possible.
+        This is running inside a terminal environment and the output will be placed next to the input in the prompt as a comment.
+        For example, for:
+        Get-Command | Get-Random | Get-Help -Full
+        you should respond with:
+        Retrieve a random command and display its full help information
+
+        Here the input:
+        $Line
+    "
+
+    # Idea: It might be cool to pass in the --help text (if possible) along with the context
+
     # Invoke the completion based on the provider
     switch ($Script:CONFIG.LLM_Provider) {
         "ollama" {
@@ -24,13 +38,13 @@ function Get-NLPowerShellExplanation(
         }
         "openai" { 
             $Response = "Response from OpenAI"
-    # $Response = Invoke-OpenAICompletion -Prompt $Prompt
+            # $Response = Invoke-OpenAICompletion -Prompt $Prompt
         }
         Default {
             # Default to ollama
-    $Response = Invoke-OllamaCompletion -Prompt $Prompt
+            $Response = Invoke-OllamaCompletion -Prompt $Prompt
         }
     }
-
+    
     return $Response
 }
