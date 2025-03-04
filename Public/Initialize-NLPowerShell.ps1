@@ -2,7 +2,7 @@
 .SYNOPSIS
     Initializes the NLPowerShell configuration
 .DESCRIPTION
-    Initializes the NLPowerShell configuration
+    Sets up the configuration for either Ollama or OpenAI
 .EXAMPLE
     Get-NLPowerShellConfig -Path "C:\path\to\config.json"
 #>
@@ -49,22 +49,21 @@ function Initialize-NLPowerShell {
     # Initialize the Config Object
     $Script:CONFIG = [Config]::new()
 
-    $Model = if ($Ollama) { "llama3.2" } else { "gpt-3.5-turbo-instruct" }
-
     # Common Configuration
     $Script:CONFIG.Model = $Model
 
     # Ollama Specific Configuration
     if ($Ollama) {
         $Script:CONFIG.Provider = "ollama"
-        $Script:CONFIG.Model = $Model
+        $Script:CONFIG.Model = $Model ?? "llama3.2"
         $Script:CONFIG.URL = $URL
     }
     
     # OpenAI Specific Configuration
     if ($OpenAI) {
         $Script:CONFIG.Provider = "openai"
-        $Script:CONFIG.API_KEY = $API_KEY || Read-Host -AsSecureString -Prompt "OpenAI API Key"
+        $Script:CONFIG.Model = $Model ?? "gpt-3.5-turbo-instruct"
+        $Script:CONFIG.API_KEY = $API_KEY ?? (Read-Host -AsSecureString -Prompt "OpenAI API Key")
         $Script:CONFIG.Organization = $Organization
         $Script:CONFIG.MaxTokens = $MaxTokens
         $Script:CONFIG.Temperature = $Temperature
