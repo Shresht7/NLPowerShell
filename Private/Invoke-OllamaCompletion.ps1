@@ -13,13 +13,9 @@ function Invoke-OllamaCompletion(
     [string] $Prompt,
 
     # The URL of the API endpoint
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
     [string] $URL = "http://localhost:11434",
 
     # The ollama model to use
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
     [string] $Model = "llama3.2"
 ) {
     $APIEndpoint = "$URL/api/generate"
@@ -40,7 +36,9 @@ function Invoke-OllamaCompletion(
 
     # Make the API Request and return the response
     $Response = Invoke-RestMethod @RequestParams
-    $Response = $Response.response.Trim()
+    if ($null -ne $Response) {
+        $Response = $Response.response.Trim()
+    }
 
-    return $Response.response.Trim()
+    return $Response
 }
