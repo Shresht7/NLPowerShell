@@ -19,7 +19,17 @@ function Get-NLPowerShellCommand(
     if (-not $PSBoundParameters.ContainsKey("Comment")) { return $null }
 
     # The prompt for OpenAI
-    $Prompt = "<# PowerShell #>`n# Write a PowerShell command to do the following:`n$Comment`n"
+    $Prompt = "
+        <# PowerShell #>
+        You have to write a valid command that runs in PowerShell to perform the given task.
+        For example, for the following prompt:
+        Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
+        Your response should be:
+        Get a list of the 5 most CPU intensive processes
+
+        Command:
+        $Comment
+    "
 
     # Invoke the completion based on the provider
     switch ($Script:CONFIG.LLM_Provider) {
