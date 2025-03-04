@@ -1,17 +1,11 @@
-# GLOBAL VARIABLES
-$Script:CONFIG = $null
-$Script:CONFIG_PATH = "$PSScriptRoot\.openairc"
-
 # Import PowerShell Scripts
 Get-ChildItem -Path $PSScriptRoot -Recurse -Filter "*.ps1" | ForEach-Object {
     . $_.FullName -Force
 }
 
-# Do not register PSReadLineKeyHandler if the config file does not exist
-if (-Not (Test-Path -Path $Script:CONFIG_PATH)) { return }
-
-# Import the config file
-$Script:CONFIG = Import-Clixml -Path $Script:CONFIG_PATH
+# GLOBAL VARIABLES
+$ConfigPath = "$PSScriptRoot\config.json"
+$Script:CONFIG = Get-NLPowerShellConfig -Path $ConfigPath
     
 # ====================
 # NLPowerShell Handler

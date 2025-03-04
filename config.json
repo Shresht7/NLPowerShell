@@ -1,0 +1,5 @@
+{
+    "LLM_Provider": "ollama",
+    "Model": "llama3.2",
+    "URL": "http://localhost:11434"
+}
