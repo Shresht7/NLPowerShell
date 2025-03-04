@@ -32,13 +32,12 @@ function Get-NLPowerShellCommand(
     "
 
     # Invoke the completion based on the provider
-    switch ($Script:CONFIG.LLM_Provider) {
+    switch ($Script:CONFIG.Provider) {
         "ollama" {
             $Response = Invoke-OllamaCompletion -Prompt $Prompt
         }
         "openai" { 
-            $Response = "Response from OpenAI"
-            # $Response = Invoke-OpenAICompletion -Prompt $Prompt
+            $Response = Invoke-OpenAICompletion -Prompt $Prompt
         }
         Default {
             # Default to ollama

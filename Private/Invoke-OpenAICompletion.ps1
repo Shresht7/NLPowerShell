@@ -23,10 +23,10 @@ function Invoke-OpenAICompletion(
             "Content-Type" = "application/json"
         }
         Body           = @{
-            model       = $Script:CONFIG.MODEL_NAME
+            model       = $Script:CONFIG.Model
             prompt      = $Prompt
-            max_tokens  = $Script:CONFIG.MAX_TOKENS
-            temperature = $Script:CONFIG.TEMPERATURE
+            max_tokens  = $Script:CONFIG.MaxTokens
+            temperature = $Script:CONFIG.Temperature
             n           = $Script:CONFIG.N
             stop        = @("#")
         } | ConvertTo-Json

@@ -13,10 +13,10 @@ function Invoke-OllamaCompletion(
     [string] $Prompt,
 
     # The URL of the API endpoint
-    [string] $URL = "http://localhost:11434",
+    [string] $URL = $Script:CONFIG.URL,
 
     # The ollama model to use
-    [string] $Model = "llama3.2"
+    [string] $Model = $Script:CONFIG.Model
 ) {
     $APIEndpoint = "$URL/api/generate"
 
