@@ -37,6 +37,8 @@ function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind)
 
             # Process comments: Convert NL prompt into a command
             if ($Line.StartsWith("#")) {
+                [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" [Generating Command...]")
                 
                 # Call AI function
@@ -44,35 +46,37 @@ function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind)
 
                 # Restore original line if no response
                 if ($null -eq $SuggestedCommand) {
-                    [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
+                    [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                     [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
                     return
                 }
 
                 # Replace input with the generated command
-                [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
+                [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($SuggestedCommand -join "`n"))
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    $Line")
             }
 
             # Process commands: Generate an explanation
             else {
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    # [Generating Explanation...]")
+                [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("  # [Generating Explanation...]")
 
                 # Call AI function
                 $SuggestedExplanation = Get-NLPowerShellExplanation -Line $Line
 
                 # Restore original line if no response
                 if ($null -eq $SuggestedExplanation) {
-                    [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
+                    [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                     [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
                     return
                 }
 
                 # Append explanation as a comment
-                [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
+                [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert(("    # " + ($SuggestedExplanation -join "`n    # ")))
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert(("  # " + ($SuggestedExplanation -join "`n    # ")))
             }
         }
     }
