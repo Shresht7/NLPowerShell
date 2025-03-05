@@ -21,7 +21,7 @@ function Get-NLPowerShellCommand(
     [string] $Command
 ) {
     # Default HelpText to empty
-    $HelpText = Get-CommandHelpText -Command $Command
+    $HelpText = Get-CommandHelpText -Command $Command -IncludeAll
 
     # Construct AI Prompt
     $Prompt = @"
@@ -93,31 +93,47 @@ Output:
 
 function Get-CommandHelpText {
     param (
-        [string] $Command
+        [string] $Command,
+        [switch] $IncludeAll  # If true, fetches help for all commands in a pipeline
     )
 
     if (-not $Command) {
         return ""
     }
 
-    $CommandInfo = Get-Command $Command -ErrorAction SilentlyContinue
+    # Split pipeline (`|` or `||` for robustness)
+    $Commands = $Command -split '\s*\|\s*'
+
+    if ($IncludeAll) {
+        # Get help for each command in the pipeline
+        $HelpTexts = $Commands | ForEach-Object { Get-SingleCommandHelp $_ }
+        return $HelpTexts -join "`n---`n"
+    }
+    else {
+        # Get help for the right-most command
+        return Get-SingleCommandHelp $Commands[-1]
+    }
+}
+
+function Get-SingleCommandHelp {
+    param ([string] $Cmd)
+
+    $CommandInfo = Get-Command $Cmd -ErrorAction SilentlyContinue
 
     if ($CommandInfo -and $CommandInfo.CommandType -in @('Cmdlet', 'Function')) {
-        # It's a PowerShell cmdlet/function
-        return Get-Help $Command -Full | Out-String
+        return Get-Help $Cmd -Full | Out-String
     }
     elseif ($CommandInfo -and $CommandInfo.CommandType -eq 'Application') {
-        # It's an external executable
         try {
-            $HelpText = & $Command --help 2>&1 | Out-String
-            if (-not $HelpText) { $HelpText = & $Command -h 2>&1 | Out-String }
+            $HelpText = & $Cmd --help 2>&1 | Out-String
+            if (-not $HelpText) { $HelpText = & $Cmd -h 2>&1 | Out-String }
             return $HelpText
         }
         catch {
-            return "No help available for $Command."
+            return "No help available for $Cmd."
         }
     }
     else {
-        return "Unknown command: $Command"
+        return "Unknown command: $Cmd"
     }
 }
