@@ -14,6 +14,7 @@ function Initialize-NLPowerShell {
         [switch] $OpenAI,
 
         # The model to use
+        [Parameter(Mandatory)]
         [string] $Model,
 
         # The URL address of the running Ollama instance
