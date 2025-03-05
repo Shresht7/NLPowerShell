@@ -47,8 +47,8 @@ function Invoke-OllamaCompletion(
         $RequestBody.options["top_p"] = $Script:CONFIG.TopP
     }
 
-    if ($Script:CONFIG.PSObject.Properties["N"] -and $null -ne $Script:CONFIG.N) {
-        $RequestBody.options["num_predict"] = $Script:CONFIG.N
+    if ($Script:CONFIG.PSObject.Properties["MaxTokens"] -and $null -ne $Script:CONFIG.MaxTokens) {
+        $RequestBody.options["num_predict"] = $Script:CONFIG.MaxTokens
     }
 
     # Convert to JSON, ensuring correct depth for nested objects
