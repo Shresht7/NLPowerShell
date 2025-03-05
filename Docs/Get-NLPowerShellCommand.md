@@ -8,7 +8,7 @@ schema: 2.0.0
 # Get-NLPowerShellCommand
 
 ## SYNOPSIS
-Converts a natural language prompt to a PowerShell command
+Converts a natural language prompt into a PowerShell command.
 
 ## SYNTAX
 
@@ -17,22 +17,21 @@ Get-NLPowerShellCommand [-Comment] <String> [-ProgressAction <ActionPreference>]
 ```
 
 ## DESCRIPTION
-The Get-CommandCompletion function takes a natural language prompt as input
-and uses the OpenAI API to generate a corresponding PowerShell command
+This function takes a natural language description of a task and generates a valid PowerShell command.
+It uses the configured AI provider (Ollama or OpenAI) to generate the command.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
 ```
-
-{{ Add example description here }}
+Get-NLPowerShellCommand -Comment "List the 5 most CPU-intensive processes"
+Returns: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
+```
 
 ## PARAMETERS
 
 ### -Comment
-The natural language prompt to convert to a PowerShell command
+A natural language description of the desired task.
 
 ```yaml
 Type: String
@@ -69,7 +68,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
-This function uses the OpenAI API to generate the PowerShell command.
-You must provide a valid API key and model name in the CONFIG script variable to use this function.
+Requires a valid AI provider, model, and API key to be configured in $Script:CONFIG.
 
 ## RELATED LINKS
