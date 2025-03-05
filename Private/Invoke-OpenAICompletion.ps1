@@ -13,30 +13,65 @@ function Invoke-OpenAICompletion(
     [ValidateNotNullOrEmpty()]
     [string] $Prompt
 ) {
-    # Request Parameters
-    $RequestParams = @{
-        Uri            = "https://api.openai.com/v1/completions"
-        Method         = "POST"
-        Authentication = "Bearer"
-        Token          = $Script:CONFIG.API_KEY
-        Headers        = @{
-            "Content-Type" = "application/json"
-        }
-        Body           = @{
-            model       = $Script:CONFIG.Model
-            prompt      = $Prompt
-            max_tokens  = $Script:CONFIG.MaxTokens
-            temperature = $Script:CONFIG.Temperature
-            n           = $Script:CONFIG.N
-            stop        = @("#")
-        } | ConvertTo-Json
+    # Validate API key
+    if ($null -eq $Script:CONFIG.API_KEY -or [string]::IsNullOrWhiteSpace((ConvertFrom-SecureString -SecureString $Script:CONFIG.API_KEY))) {
+        Write-Error "OpenAI API Key is missing. Please set API_KEY in the configuration."
+        return $null
     }
 
-    # Make the API Request and return the response
-    $Response = Invoke-RestMethod @RequestParams
-    
-    # Get the best-fit result and process it for output
-    $Response = $Response.choices[0].text.Trim()
+    # Validate Model
+    if ([string]::IsNullOrWhiteSpace($Script:CONFIG.Model)) {
+        Write-Error "No model specified. Please set a model in your configuration before making requests."
+        return $null
+    }
 
-    return $Response
+    # OpenAI API Endpoint
+    $APIEndpoint = "https://api.openai.com/v1/completions"
+
+    # Construct Request Body
+    $RequestBody = @{
+        model   = $Script:CONFIG.Model
+        prompt  = $Prompt
+        stop    = @("#")  # Stop generation at a comment to prevent excess output
+        options = @{}
+    }
+
+    # Add optional parameters if they exist in the config
+    if ($Script:CONFIG.PSObject.Properties["MaxTokens"] -and $null -ne $Script:CONFIG.MaxTokens) {
+        $RequestBody["max_tokens"] = $Script:CONFIG.MaxTokens
+    }
+
+    if ($Script:CONFIG.PSObject.Properties["Temperature"] -and $null -ne $Script:CONFIG.Temperature) {
+        $RequestBody["temperature"] = $Script:CONFIG.Temperature
+    }
+
+    if ($Script:CONFIG.PSObject.Properties["N"] -and $null -ne $Script:CONFIG.N) {
+        $RequestBody["n"] = $Script:CONFIG.N
+    }
+
+    # Convert request body to JSON
+    $RequestJson = $RequestBody | ConvertTo-Json -Depth 2
+
+    # Request Parameters
+    $RequestParams = @{
+        Uri     = $APIEndpoint
+        Method  = "POST"
+        Headers = @{
+            "Content-Type"  = "application/json"
+            "Authorization" = "Bearer $(ConvertFrom-SecureString -SecureString $Script:CONFIG.API_KEY -AsPlainText)"
+        }
+        Body    = $RequestJson
+    }
+
+    # Make API request
+    try {
+        $Response = Invoke-RestMethod @RequestParams
+        if ($null -ne $Response -and $Response.PSObject.Properties["choices"] -and $Response.choices.Count -gt 0) {
+            return $Response.choices[0].text.Trim()
+        }
+    }
+    catch {
+        Write-Error "Failed to communicate with OpenAI API: $_"
+        return $null
+    }
 }
