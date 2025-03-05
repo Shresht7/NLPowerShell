@@ -8,41 +8,48 @@ function Register-PSSReadlineKeyHandler() {
         -ScriptBlock {
         param ($Key, $Arg)
 
-        # Instantiate $Line and $Cursor
+        # Retrieve the current buffer state
         $Line = $null
         $Cursor = $null
         [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$Line, [ref]$Cursor)
 
-        # If the line is a comment ...
+        # If the input is a comment then generate the command
         if ($Line.StartsWith("#")) {
-            # ... get response from the Get-NLPowerShellCommand function
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" [Processing...]")
+            
+            # Get the response from the Get-NLPowerShellCommand function
             $SuggestedCommand = Get-NLPowerShellCommand -Line $Line
-            if ($null -eq $SuggestedCommand) { return }
-    
-            # Delete the entire line
+
+            # If there was no response, restore the line
+            if ($null -eq $SuggestedCommand) {
+                [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
+                return
+            }    
+            # Otherwise, replace input with generated command + original comment
             [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
-            foreach ($Str in $SuggestedCommand) {
-                if ($null -ne $Str -and $Str -ne "") {
-                    # Append the generated command
-                    [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Str)
-                }
-            }
-            # Readd the original comment
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($SuggestedCommand -join "`n"))
             [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    $Line")
         }
 
-        # If the line is not a command and an explanation is required ...
+        # If the input is a command, generate an explanation
         else {
-            # ... get response from the Get-NLPowerShellExplanation function
-            $SuggestedExplanation = Get-NLPowerShellExplanation -Line $Line
-            if ($null -eq $SuggestedExplanation) { return }
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    # [Processing...]")
 
-            # Append an explanation at the end as a comment
-            foreach ($Str in $SuggestedExplanation) {
-                if ($null -ne $Str -and $Str -ne "") {
-                    [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    # $Str")
-                }
+            # Get response from the Get-NLPowerShellExplanation function
+            $SuggestedExplanation = Get-NLPowerShellExplanation -Line $Line
+
+            # If there was no response, then restore the line
+            if ($null -eq $SuggestedExplanation) {
+                [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
+                return
             }
+
+            # Otherwise, append an explanation at the end as a comment
+            [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteLine()
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert(("    # " + ($SuggestedExplanation -join "`n    # ")))
         }
 
     }
