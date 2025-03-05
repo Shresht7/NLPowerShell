@@ -49,20 +49,17 @@ function Initialize-NLPowerShell {
     # Initialize the Config Object
     $Script:CONFIG = [Config]::new()
 
-    # Common Configuration
-    $Script:CONFIG.Model = $Model
-
     # Ollama Specific Configuration
     if ($Ollama) {
         $Script:CONFIG.Provider = "ollama"
-        $Script:CONFIG.Model = $Model ?? "llama3.2"
+        $Script:CONFIG.Model = $Model
         $Script:CONFIG.URL = $URL
     }
     
     # OpenAI Specific Configuration
     if ($OpenAI) {
         $Script:CONFIG.Provider = "openai"
-        $Script:CONFIG.Model = $Model ?? "gpt-3.5-turbo-instruct"
+        $Script:CONFIG.Model = $Model
         $Script:CONFIG.API_KEY = $API_KEY ?? (Read-Host -AsSecureString -Prompt "OpenAI API Key")
         $Script:CONFIG.Organization = $Organization
         $Script:CONFIG.MaxTokens = $MaxTokens
@@ -70,8 +67,6 @@ function Initialize-NLPowerShell {
         $Script:CONFIG.TopP = $TopP
         $Script:CONFIG.N = $N
     }
-
-    Write-Host $Script:CONFIG.Provider $Script:CONFIG.Model $Script:CONFIG.URL
 
     # Register the key event handler
     Register-PSSReadlineKeyHandler

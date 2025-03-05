@@ -1,9 +1,9 @@
 class Config {
-    [string] $Provider
+    [string] $Provider = "ollama"
     [string] $Model
-    [string] $URL
+    [string] $URL = "http://localhost:11434"
     [securestring] $API_KEY
-    [securestring] $Organization
+    [string] $Organization
     [int] $MaxTokens
     [double] $Temperature
     [double] $TopP
