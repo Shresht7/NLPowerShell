@@ -3,21 +3,39 @@
     Make a request to Ollama API endpoint
 .DESCRIPTION
     Makes a request to the local Ollama completions API endpoint with the given prompt
-.PARAMETER Comment
+.PARAMETER Prompt
     The natural language prompt
+.PARAMETER URL
+    The URL of the Ollama API endpoint (defaults to config)
+.PARAMETER Model
+    The Ollama model to use (must be set by the user)
 #>
-function Invoke-OllamaCompletion(
-    # The prompt to use for completion
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string] $Prompt,
+function Invoke-OllamaCompletion {
+    param(
+        # The prompt to use for completion
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Prompt,
 
-    # The URL of the API endpoint
-    [string] $URL = $Script:CONFIG.URL,
+        # The URL of the API endpoint
+        [string] $URL = ($Script:CONFIG.URL ?? "http://localhost:11434"),
 
-    # The ollama model to use
-    [string] $Model = $Script:CONFIG.Model
-) {
+        # The Ollama model to use
+        [string] $Model = $Script:CONFIG.Model
+    )
+
+    # Validate that CONFIG is initialized
+    if ($null -eq $Script:CONFIG) {
+        Write-Error "Configuration not initialized. Run Initialize-NLPowerShell first."
+        return $null
+    }
+
+    # Ensure a model is set
+    if ([string]::IsNullOrWhiteSpace($Model)) {
+        Write-Error "No model specified. Please set a model in the configuration."
+        return $null
+    }
+
     $APIEndpoint = "$URL/api/generate"
 
     # Request Parameters
@@ -34,11 +52,13 @@ function Invoke-OllamaCompletion(
         } | ConvertTo-Json
     }
 
-    # Make the API Request and return the response
-    $Response = Invoke-RestMethod @RequestParams
-    if ($null -ne $Response) {
-        $Response = $Response.response.Trim()
+    try {
+        # Make the API Request
+        $Response = Invoke-RestMethod @RequestParams
+        return $Response.response.Trim()
     }
-
-    return $Response
+    catch {
+        Write-Error "Failed to connect to Ollama API at $APIEndpoint. Ensure Ollama is running and the model '$Model' is installed."
+        return $null
+    }
 }
