@@ -1,4 +1,4 @@
-﻿---
+---
 external help file: NLPowerShell-help.xml
 Module Name: NLPowerShell
 online version:
@@ -13,7 +13,7 @@ Returns an explanation of the given line of PowerShell code
 ## SYNTAX
 
 ```
-Get-NLPowerShellExplanation [-Line] <String> [<CommonParameters>]
+Get-NLPowerShellExplanation [-Line] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -41,6 +41,21 @@ Aliases:
 
 Required: True
 Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ProgressAction
+{{ Fill ProgressAction Description }}
+
+```yaml
+Type: ActionPreference
+Parameter Sets: (All)
+Aliases: proga
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
