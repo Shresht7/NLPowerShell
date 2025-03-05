@@ -20,11 +20,16 @@ function Get-NLPowerShellCommand(
 
     [string] $Command
 ) {
+    # Default HelpText to empty
+    $HelpText = Get-CommandHelpText -Command $Command
+
     # Construct AI Prompt
     $Prompt = @"
 You are a PowerShell assistant. Convert the following natural language request into a valid PowerShell command.
 Provide only the command itself—no explanations or formatting.
     
+$(if ($HelpText) { "Here is some help information related to the command:`n$HelpText" } else { "" })
+
 Example:
 Input: # List the 5 most CPU-intensive processes
 Output: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
@@ -84,4 +89,35 @@ Output:
     }
 
     return $Response
+}
+
+function Get-CommandHelpText {
+    param (
+        [string] $Command
+    )
+
+    if (-not $Command) {
+        return ""
+    }
+
+    $CommandInfo = Get-Command $Command -ErrorAction SilentlyContinue
+
+    if ($CommandInfo -and $CommandInfo.CommandType -in @('Cmdlet', 'Function')) {
+        # It's a PowerShell cmdlet/function
+        return Get-Help $Command -Full | Out-String
+    }
+    elseif ($CommandInfo -and $CommandInfo.CommandType -eq 'Application') {
+        # It's an external executable
+        try {
+            $HelpText = & $Command --help 2>&1 | Out-String
+            if (-not $HelpText) { $HelpText = & $Command -h 2>&1 | Out-String }
+            return $HelpText
+        }
+        catch {
+            return "No help available for $Command."
+        }
+    }
+    else {
+        return "Unknown command: $Command"
+    }
 }
