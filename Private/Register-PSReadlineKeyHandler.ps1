@@ -37,7 +37,7 @@ function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind)
 
             # Process comments: Convert NL prompt into a command
             if ($Line.StartsWith("#")) {
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" [Processing...]")
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" [Generating Command...]")
                 
                 # Call AI function
                 $SuggestedCommand = Get-NLPowerShellCommand -Line $Line
@@ -57,7 +57,7 @@ function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind)
 
             # Process commands: Generate an explanation
             else {
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    # [Processing...]")
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    # [Generating Explanation...]")
 
                 # Call AI function
                 $SuggestedExplanation = Get-NLPowerShellExplanation -Line $Line
