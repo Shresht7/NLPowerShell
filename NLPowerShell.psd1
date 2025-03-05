@@ -12,7 +12,7 @@
     RootModule        = '.\NLPowerShell.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.1.0'
+    ModuleVersion     = '0.3.0'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -33,7 +33,7 @@
     Description       = 'Use natural language to interact with PowerShell'
 
     # Minimum version of the PowerShell engine required by this module
-    # PowerShellVersion = ''
+    PowerShellVersion = '7.2'
 
     # Name of the PowerShell host required by this module
     # PowerShellHostName = ''
@@ -51,7 +51,7 @@
     # ProcessorArchitecture = ''
 
     # Modules that must be imported into the global environment prior to importing this module
-    # RequiredModules = @()
+    RequiredModules   = @("PSReadline")
 
     # Assemblies that must be loaded prior to importing this module
     # RequiredAssemblies = @()
@@ -72,7 +72,7 @@
     FunctionsToExport = @(
         "Get-NLPowerShellCommand",
         "Get-NLPowerShellExplanation",
-        "Set-NLPowerShellConfig"
+        "Initialize-NLPowerShell"
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -99,13 +99,13 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            # Tags = @()
+            Tags       = @("Natural Language", "AI", "LLM", "Automation")
 
             # A URL to the license for this module.
-            # LicenseUri = ''
+            LicenseUri = 'https://github.com/Shresht7/NLPowerShell/blob/main/LICENSE'
 
             # A URL to the main website for this project.
-            # ProjectUri = ''
+            ProjectUri = 'https://github.com/Shresht7/NLPowerShell'
 
             # A URL to an icon representing this module.
             # IconUri = ''
