@@ -44,7 +44,10 @@ function Initialize-NLPowerShell {
 
         # How many completions to generate for each prompt
         [Parameter(ParameterSetName = "OpenAI")]
-        [int] $N = 1
+        [int] $N = 1,
+
+        # The keybinding to use to trigger NLPowerShell
+        [string] $KeyBind = "Ctrl+Shift+Insert"
     )    
 
     # Initialize the Config Object
@@ -70,5 +73,5 @@ function Initialize-NLPowerShell {
     }
 
     # Register the key event handler
-    Register-PSSReadlineKeyHandler
+    Register-PSSReadlineKeyHandler -KeyBind $KeyBind
 }

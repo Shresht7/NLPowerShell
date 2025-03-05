@@ -2,8 +2,8 @@
 .SYNOPSIS
     Performs the PSReadLine key-handler registration
 #>
-function Register-PSSReadlineKeyHandler() {
-    Set-PSReadLineKeyHandler -Key Ctrl+Insert `
+function Register-PSSReadlineKeyHandler([string] $KeyBind) {
+    Set-PSReadLineKeyHandler -Key $KeyBind `
         -BriefDescription "Use Natural Language to interact with PowerShell" `
         -ScriptBlock {
         param ($Key, $Arg)
