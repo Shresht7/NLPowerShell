@@ -1,16 +1,3 @@
-<#
-.SYNOPSIS
-    Registers a PSReadLine key handler to interact with Natural Language in PowerShell.
-.DESCRIPTION
-    This function binds a specified key to a script block that processes user input.
-    - If input starts with `#`, it is treated as a comment and converted into a command.
-    - Otherwise, an explanation of the command is generated.
-.PARAMETER KeyBind
-    The key binding that triggers the handler. Example: "Ctrl+Insert".
-    Must be a valid PSReadLine key.
-.EXAMPLE
-    Register-PSSReadlineKeyHandler -KeyBind "Ctrl+Insert"
-#>
 function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind) {
     # Validate that PSReadLine is available
     if (-not (Get-Module -Name PSReadLine -ListAvailable)) {
@@ -35,14 +22,17 @@ function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind)
                 return
             }
 
-            # Process comments: Convert NL prompt into a command
-            if ($Line.StartsWith("#")) {
+            # Check if the input contains a comment ("#")
+            if ($Line -match "^(?<Command>.*?)\s*#\s*(?<Comment>.*)$") {
+                $CommandPart = $matches['Command'].Trim()
+                $CommentPart = $matches['Comment'].Trim()
+
                 [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" [Generating Command...]")
-                
-                # Call AI function
-                $SuggestedCommand = Get-NLPowerShellCommand -Line $Line
+
+                # Call AI function for command generation
+                $SuggestedCommand = Get-NLPowerShellCommand -Line $CommentPart -Command $CommandPart
 
                 # Restore original line if no response
                 if ($null -eq $SuggestedCommand) {
@@ -51,19 +41,19 @@ function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind)
                     return
                 }
 
-                # Replace input with the generated command
+                # Replace input with generated command and keep the original comment
                 [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($SuggestedCommand -join "`n"))
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    $Line")
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    # $CommentPart")
             }
-
-            # Process commands: Generate an explanation
+            
+            # If no comment is found, generate an explanation
             else {
                 [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert("  # [Generating Explanation...]")
 
-                # Call AI function
+                # Call AI function for explanation
                 $SuggestedExplanation = Get-NLPowerShellExplanation -Line $Line
 
                 # Restore original line if no response
