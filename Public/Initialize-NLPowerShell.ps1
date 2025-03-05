@@ -36,14 +36,11 @@ function Initialize-NLPowerShell {
 
         # The sampling temperature to use. Higher values mean the model will take more risks.
         # Higher values are for creative applications, and 0 for well-defined answers.
-        [Parameter(ParameterSetName = "OpenAI")]
         [double] $Temperature = 0.1,
 
-        [Parameter(ParameterSetName = "OpenAI")]
         [double] $TopP = 1,
 
         # How many completions to generate for each prompt
-        [Parameter(ParameterSetName = "OpenAI")]
         [int] $N = 1,
 
         # The keybinding to use to trigger NLPowerShell
@@ -67,10 +64,13 @@ function Initialize-NLPowerShell {
         $Script:CONFIG.API_KEY = $API_KEY ?? (Read-Host -AsSecureString -Prompt "OpenAI API Key")
         $Script:CONFIG.Organization = $Organization
         $Script:CONFIG.MaxTokens = $MaxTokens
-        $Script:CONFIG.Temperature = $Temperature
-        $Script:CONFIG.TopP = $TopP
-        $Script:CONFIG.N = $N
     }
+
+    # Common Configuration
+    $Script:CONFIG.Temperature = $Temperature
+    $Script:CONFIG.TopP = $TopP
+    $Script:CONFIG.N = $N
+    
 
     # Register the key event handler
     Register-PSSReadlineKeyHandler -KeyBind $KeyBind
