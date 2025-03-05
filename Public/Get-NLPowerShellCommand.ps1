@@ -1,47 +1,51 @@
 <#
 .SYNOPSIS
-    Converts a natural language prompt to a PowerShell command
+    Converts a natural language prompt into a PowerShell command.
 .DESCRIPTION
-    The Get-CommandCompletion function takes a natural language prompt as input
-    and uses the OpenAI API to generate a corresponding PowerShell command
+    This function takes a natural language description of a task and generates a valid PowerShell command.
+    It uses the configured AI provider (Ollama or OpenAI) to generate the command.
+.PARAMETER Comment
+    A natural language description of the desired task.
+.EXAMPLE
+    Get-NLPowerShellCommand -Comment "List the 5 most CPU-intensive processes"
+    Returns: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
 .NOTES
-    This function uses the OpenAI API to generate the PowerShell command.
-    You must provide a valid API key and model name in the CONFIG script variable to use this function.
+    Requires a valid AI provider, model, and API key to be configured in $Script:CONFIG.
 #>
 function Get-NLPowerShellCommand(
-    # The natural language prompt to convert to a PowerShell command
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [Alias("Line")]
     [string] $Comment
 ) {
-    # Return null if no comment was given
-    if (-not $PSBoundParameters.ContainsKey("Comment")) { return $null }
+    # Construct AI Prompt
+    $Prompt = @"
+You are a PowerShell assistant. Convert the following natural language request into a valid PowerShell command.
+Provide only the command itself—no explanations or formatting. The command you generate can use external cli tools and is not limited just to PowerShell cmdlets.
+    
+Example:
+Input: # List the 5 most CPU-intensive processes
+Output: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
 
-    # The prompt for OpenAI
-    $Prompt = "
-        <# PowerShell #>
-        You have to write a valid command that runs in PowerShell to perform the given task.
-        For example, for the following prompt:
-        Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
-        Your response should be:
-        Get a list of the 5 most CPU intensive processes
+Example:
+Input: # Stage all changes and amend them into the last commit
+Output: git amend -a --no-edit
 
-        Command:
-        $Comment
-    "
+Example:
+Input: # Interactively stage files in git
+Output: git status --short | fzf --multi  --preview "bat {2}" --preview-window "right:70%" | cut -f 2
 
-    # Invoke the completion based on the provider
+Input: $Comment
+Output:
+"@
+
+    # Select Provider and Invoke Completion
     switch ($Script:CONFIG.Provider) {
-        "ollama" {
-            $Response = Invoke-OllamaCompletion -Prompt $Prompt
-        }
-        "openai" { 
-            $Response = Invoke-OpenAICompletion -Prompt $Prompt
-        }
+        "ollama" { $Response = Invoke-OllamaCompletion -Prompt $Prompt }
+        "openai" { $Response = Invoke-OpenAICompletion -Prompt $Prompt }
         Default {
-            # Default to ollama
-            $Response = Invoke-OllamaCompletion -Prompt $Prompt
+            Write-Error -Message "Unsupported Provider: $($Script:CONFIG.Provider)"
+            return 
         }
     }
 
