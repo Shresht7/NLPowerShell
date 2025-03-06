@@ -7,10 +7,10 @@ function Import-NLPowerShellConfig(
     [string] $Path
 ) {
     $Extension = (Get-Item -Path $Path).Extension
-    if ($Extension -eq "json") {
+    if ($Extension -eq ".json") {
         $Script:CONFIG = [Config]::LoadJSON($Path)
     }
-    elseif ($Extension -eq "xml") {
+    elseif ($Extension -eq ".xml") {
         $Script:CONFIG = [Config]::LoadClixml($Path)
     }
     else {
