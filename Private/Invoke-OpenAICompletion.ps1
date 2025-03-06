@@ -2,19 +2,22 @@
 .SYNOPSIS
     Make a request to OpenAI Completions endpoint
 .DESCRIPTION
-    Makes a request to the OpenAI Completions endpoint with the given prompt
-.PARAMETER Comment
-    The natural language prompt to convert to a PowerShell command.
-    This parameter is mandatory and should not be empty or null.
+    Sends a prompt to OpenAI's API and returns the completion response
+.PARAMETER Prompt
+    The natural language prompt to convert to a PowerShell command
 #>
-function Invoke-OpenAICompletion(
-    # The prompt to use for completion
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string] $Prompt
-) {
-    # Validate API key
-    if ($null -eq $Script:CONFIG.API_KEY -or [string]::IsNullOrWhiteSpace((ConvertFrom-SecureString -SecureString $Script:CONFIG.API_KEY))) {
+function Invoke-OpenAICompletion {
+    [CmdletBinding()]
+    param (
+        # The prompt to use for completion
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Prompt
+    )
+
+    # Validate API Key
+    $APIKey = ConvertFrom-SecureString -SecureString $Script:CONFIG.API_KEY -AsPlainText
+    if ([string]::IsNullOrWhiteSpace($APIKey)) {
         Write-Error "OpenAI API Key is missing. Please set API_KEY in the configuration."
         return $null
     }
@@ -25,32 +28,30 @@ function Invoke-OpenAICompletion(
         return $null
     }
 
-    # OpenAI API Endpoint
     $APIEndpoint = "https://api.openai.com/v1/completions"
 
     # Construct Request Body
     $RequestBody = @{
-        model   = $Script:CONFIG.Model
-        prompt  = $Prompt
-        stop    = @("#")  # Stop generation at a comment to prevent excess output
-        options = @{}
+        model  = $Script:CONFIG.Model
+        prompt = $Prompt
+        stop   = @("#")  # Stop generation at a comment
     }
 
-    # Add optional parameters if they exist in the config
-    if ($Script:CONFIG.PSObject.Properties["MaxTokens"] -and $null -ne $Script:CONFIG.MaxTokens) {
+    # Add optional parameters if set in the configuration
+    if ($null -ne $Script:CONFIG.MaxTokens) {
         $RequestBody["max_tokens"] = $Script:CONFIG.MaxTokens
     }
 
-    if ($Script:CONFIG.PSObject.Properties["Temperature"] -and $null -ne $Script:CONFIG.Temperature) {
+    if ($null -ne $Script:CONFIG.Temperature) {
         $RequestBody["temperature"] = $Script:CONFIG.Temperature
     }
 
-    if ($Script:CONFIG.PSObject.Properties["N"] -and $null -ne $Script:CONFIG.N) {
+    if ($null -ne $Script:CONFIG.N) {
         $RequestBody["n"] = $Script:CONFIG.N
     }
 
     # Convert request body to JSON
-    $RequestJson = $RequestBody | ConvertTo-Json -Depth 2
+    $RequestJson = $RequestBody | ConvertTo-Json -Depth 3 -Compress
 
     # Request Parameters
     $RequestParams = @{
@@ -58,7 +59,7 @@ function Invoke-OpenAICompletion(
         Method  = "POST"
         Headers = @{
             "Content-Type"  = "application/json"
-            "Authorization" = "Bearer $(ConvertFrom-SecureString -SecureString $Script:CONFIG.API_KEY -AsPlainText)"
+            "Authorization" = "Bearer $APIKey"
         }
         Body    = $RequestJson
     }
@@ -66,12 +67,16 @@ function Invoke-OpenAICompletion(
     # Make API request
     try {
         $Response = Invoke-RestMethod @RequestParams
-        if ($null -ne $Response -and $Response.PSObject.Properties["choices"] -and $Response.choices.Count -gt 0) {
+        if ($Response -and $Response.PSObject.Properties["choices"] -and $Response.choices.Count -gt 0) {
             return $Response.choices[0].text.Trim()
+        }
+        else {
+            Write-Error "Unexpected response from OpenAI: $($Response | ConvertTo-Json -Depth 3)"
+            return $null
         }
     }
     catch {
-        Write-Error "Failed to communicate with OpenAI API: $_"
+        Write-Error "Failed to communicate with OpenAI API: $($_.Exception.Message)"
         return $null
     }
 }
