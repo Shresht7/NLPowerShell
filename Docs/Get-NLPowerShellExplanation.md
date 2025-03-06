@@ -8,7 +8,7 @@ schema: 2.0.0
 # Get-NLPowerShellExplanation
 
 ## SYNOPSIS
-Returns an explanation of the given line of PowerShell code
+{{ Fill in the Synopsis }}
 
 ## SYNTAX
 
@@ -17,8 +17,7 @@ Get-NLPowerShellExplanation [-Line] <String> [-ProgressAction <ActionPreference>
 ```
 
 ## DESCRIPTION
-The Get-NLPowerShellExplanation function returns an explanation
-of the given line of PowerShell code, using the OpenAI API.
+{{ Fill in the Description }}
 
 ## EXAMPLES
 
@@ -32,7 +31,7 @@ PS C:\> {{ Add example code here }}
 ## PARAMETERS
 
 ### -Line
-The line of PowerShell code to explain
+{{ Fill Line Description }}
 
 ```yaml
 Type: String
@@ -40,7 +39,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 1
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -66,10 +65,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+### None
+
 ## OUTPUTS
 
+### System.Object
 ## NOTES
-This function uses the OpenAI API to generate the explanation.
-You must provide a valid API key and model name in the CONFIG script variable to use this function.
 
 ## RELATED LINKS

@@ -5,57 +5,58 @@ online version:
 schema: 2.0.0
 ---
 
-# Get-NLPowerShellCommand
+# Import-NLPowerShellConfig
 
 ## SYNOPSIS
-Converts a natural language prompt into a PowerShell command.
+{{ Fill in the Synopsis }}
 
 ## SYNTAX
 
 ```
-Get-NLPowerShellCommand [-Comment] <String> [[-Command] <String>] [-ProgressAction <ActionPreference>]
+Import-NLPowerShellConfig [-Path] <String> [[-Format] <String>] [-ProgressAction <ActionPreference>]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-This function takes a natural language description of a task and generates a valid PowerShell command.
-It uses the configured AI provider (Ollama or OpenAI) to generate the command.
+{{ Fill in the Description }}
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
+```powershell
+PS C:\> {{ Add example code here }}
 ```
-Get-NLPowerShellCommand -Comment "List the 5 most CPU-intensive processes"
-Returns: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
-```
+
+{{ Add example description here }}
 
 ## PARAMETERS
 
-### -Comment
-A natural language description of the desired task.
+### -Format
+{{ Fill Format Description }}
 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: Line
+Aliases:
+Accepted values: JSON, Clixml
 
-Required: True
+Required: False
 Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Command
-{{ Fill Command Description }}
+### -Path
+{{ Fill Path Description }}
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
 
-Required: False
-Position: 2
+Required: True
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -81,9 +82,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+### None
+
 ## OUTPUTS
 
+### System.Object
 ## NOTES
-Requires a valid AI provider, model, and API key to be configured in $Script:CONFIG.
 
 ## RELATED LINKS
