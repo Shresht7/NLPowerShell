@@ -22,7 +22,7 @@ class Config {
     [double] $N = 1
     
     # Maximum number of tokens for a response. Limits the length of responses from the model.
-    [int] $MaxTokens
+    [int] $MaxTokens = 64
     # Sampling temperature for AI responses. Higher values (e.g., 1.0) make responses more random. Lower values (e.g., 0.1) make responses more focused. Default: 0.1
     [double] $Temperature = 0.1
     # Top-P (Nucleus Sampling). Controls randomness in responses by considering cumulative probability mass. Default 1
