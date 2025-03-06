@@ -11,6 +11,6 @@ function Get-NLPowerShellConfig() {
         return
     }
     # Create a copy of the configuration but mask the API key for security
-    $configCopy = $Script:CONFIG | Select-Object -Property * -ExcludeProperty API_KEY
+    $configCopy = $Script:CONFIG | Select-Object -Property *
     Write-Output $configCopy
 }
