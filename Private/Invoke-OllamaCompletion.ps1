@@ -10,21 +10,18 @@
 .PARAMETER Model
     The Ollama model to use for completion
 #>
-function Invoke-OllamaCompletion {
-    [CmdletBinding()]
-    param (
-        # The prompt to use for completion
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string] $Prompt,
+function Invoke-OllamaCompletion(
+    # The prompt to use for completion
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string] $Prompt,
 
-        # The URL of the API endpoint
-        [string] $URL = $Script:CONFIG.URL,
+    # The URL of the API endpoint
+    [string] $URL = $Script:CONFIG.URL,
 
-        # The Ollama model to use
-        [string] $Model = $Script:CONFIG.Model
-    )
-
+    # The Ollama model to use
+    [string] $Model = $Script:CONFIG.Model
+) {
     # Validate that a model is set
     if ([string]::IsNullOrWhiteSpace($Model)) {
         Write-Error "No model specified. Please set a model in your configuration before making requests."

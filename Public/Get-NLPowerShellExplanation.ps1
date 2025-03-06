@@ -1,27 +1,32 @@
-function Get-NLPowerShellExplanation {
-    param (
-        [Parameter(Mandatory)]
-        [string] $Line
-    )
-
-    # Return null if no line was given
-    if (-not $PSBoundParameters.ContainsKey("Line")) { return $null }
-
-    # Extract individual commands from pipelines
+<#
+.SYNOPSIS
+    Explains a given PowerShell command in natural language.
+.DESCRIPTION
+    This function takes a PowerShell command and generates a concise explanation.
+    If the command contains a pipeline, it provides help for key commands in the pipeline.
+.PARAMETER Line
+    The PowerShell command to explain.
+.EXAMPLE
+    Get-NLPowerShellExplanation -Line "Get-Process | Sort-Object CPU -Descending | Select-Object -First 5"
+    Returns: "Show the top 5 most CPU-intensive processes"
+.NOTES
+    Requires a valid AI provider, model, and API key to be configured in $Script:CONFIG.
+#>
+function Get-NLPowerShellExplanation(
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string] $Line
+) {
+    # Extract individual commands from a pipeline (limit to first 3 for brevity)
     $Commands = $Line -split '\s*\|\s*'
-
-    # Fetch help for each command in the pipeline (up to 3 to keep it concise)
-    $HelpTexts = $Commands[0..2] | ForEach-Object { Get-CommandHelpText -Command $_ }
-
-    # Combine help information
-    $HelpContext = $HelpTexts -join "`n---`n"
+    $HelpTexts = @($Commands[0..([math]::Min(2, $Commands.Count - 1))] | ForEach-Object { Get-CommandHelpText -Command $_ })
 
     # Construct AI Prompt
     $Prompt = @"
 Explain the following PowerShell command in a concise, imperative manner.
 Provide a short explanation if it's simple, or a step-by-step breakdown if it's complex.
 
-$(if ($HelpContext) { "Reference Help Information:`n$HelpContext" } else { "" })
+$(if ($HelpTexts.Count -gt 0) { "Reference Help Information:`n$($HelpTexts -join "`n---`n")" } else { "" })
 
 Examples:
 
@@ -61,26 +66,17 @@ Output: Select a random command and display its full help
 Input: git switch (git branch | fzf)
 Output: Interactively switch to a selected Git branch
 
-Input: ls -Force | Select-Object Name, Length
-Output: List all files, including hidden ones, showing only their name and size
-
 Input: $Line
 Output:
 "@
 
-    # Invoke the completion based on the provider
+    # Invoke AI completion
     switch ($Script:CONFIG.Provider) {
-        "ollama" {
-            $Response = Invoke-OllamaCompletion -Prompt $Prompt
-        }
-        "openai" { 
-            $Response = Invoke-OpenAICompletion -Prompt $Prompt
-        }
+        "ollama" { return Invoke-OllamaCompletion -Prompt $Prompt }
+        "openai" { return Invoke-OpenAICompletion -Prompt $Prompt }
         Default {
-            Write-Error -Message "Unsupported Provider: $($Script:CONFIG.Provider)"
-            return 
+            Write-Error -Message "Invalid or missing AI provider in configuration."
+            return $null
         }
     }
-    
-    return $Response
 }

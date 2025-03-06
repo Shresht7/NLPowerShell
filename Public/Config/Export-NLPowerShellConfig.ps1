@@ -6,13 +6,10 @@
 .PARAMETER Path
     The file path where the configuration should be saved. Must be .json or .xml.
 #>
-function Export-NLPowerShellConfig {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory)]
-        [string] $Path
-    )
-
+function Export-NLPowerShellConfig(
+    [Parameter(Mandatory)]
+    [string] $Path
+) {
     # Ensure $Script:CONFIG exists
     if ($null -eq $Script:CONFIG) {
         Write-Error "Configuration object is not set. Cannot export."

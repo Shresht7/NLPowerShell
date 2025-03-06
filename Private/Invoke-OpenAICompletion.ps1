@@ -6,15 +6,12 @@
 .PARAMETER Prompt
     The natural language prompt to convert to a PowerShell command
 #>
-function Invoke-OpenAICompletion {
-    [CmdletBinding()]
-    param (
-        # The prompt to use for completion
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string] $Prompt
-    )
-
+function Invoke-OpenAICompletion(
+    # The prompt to use for completion
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string] $Prompt
+) {
     # Validate API Key
     $APIKey = ConvertFrom-SecureString -SecureString $Script:CONFIG.API_KEY -AsPlainText
     if ([string]::IsNullOrWhiteSpace($APIKey)) {

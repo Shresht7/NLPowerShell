@@ -6,13 +6,10 @@
 .PARAMETER Path
     The file path where the configuration should be loaded from. Must be .json or .xml.
 #>
-function Import-NLPowerShellConfig {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory)]
-        [string] $Path
-    )
-
+function Import-NLPowerShellConfig(
+    [Parameter(Mandatory)]
+    [string] $Path
+) {
     # Ensure the file exists before proceeding
     if (-not (Test-Path -Path $Path)) {
         Write-Error "Configuration file not found: $Path"

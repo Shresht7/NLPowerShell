@@ -4,8 +4,6 @@
 .DESCRIPTION
     This function takes a natural language description of a task and generates a valid PowerShell command.
     It uses the configured AI provider (Ollama or OpenAI) to generate the command.
-.PARAMETER Comment
-    A natural language description of the desired task.
 .EXAMPLE
     Get-NLPowerShellCommand -Comment "List the 5 most CPU-intensive processes"
     Returns: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
@@ -13,15 +11,18 @@
     Requires a valid AI provider, model, and API key to be configured in $Script:CONFIG.
 #>
 function Get-NLPowerShellCommand(
+    # A natural language description of the desired task.
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [Alias("Line")]
     [string] $Comment,
-
+    
+    # (Optional) A specific command to retrieve help information for.
     [string] $Command
 ) {
-    # Default HelpText to empty
-    $HelpText = Get-CommandHelpText -Command $Command -IncludeAll
+    # Retrieve help info if a command is provided
+    $HelpText = if ($Command) { Get-CommandHelpText -Command $Command } else { @() }
+    $HelpText = $HelpText -join "`n"
 
     # Construct AI Prompt
     $Prompt = @"
@@ -39,7 +40,7 @@ Input: # Stage all changes and amend them into the last commit
 Output: git amend -a --no-edit
 
 Example:
-Input: # Search for the word: TODO 
+Input: # Search for the word: TODO
 Output: rg TODO
 
 Example:
@@ -59,10 +60,6 @@ Input: # What's running on port 1080?
 Output: Get-Process -Id (Get-NetTCPConnection -LocalPort 1080).OwningProcess
 
 Example:
-Input: # What other devices are on my network?
-Output: Get-NetIPAddress | Format-Table
-
-Example:
 Input: # Show me the disk usage of my computer
 Output: Get-WmiObject -Class Win32_LogicalDisk | Select-Object -Property DeviceID,FreeSpace,Size,DriverType | Format-Table -AutoSize
 
@@ -78,62 +75,13 @@ Input: $Comment
 Output:
 "@
 
-    # Select Provider and Invoke Completion
+    # Select AI Provider
     switch ($Script:CONFIG.Provider) {
-        "ollama" { $Response = Invoke-OllamaCompletion -Prompt $Prompt }
-        "openai" { $Response = Invoke-OpenAICompletion -Prompt $Prompt }
+        "ollama" { return Invoke-OllamaCompletion -Prompt $Prompt }
+        "openai" { return Invoke-OpenAICompletion -Prompt $Prompt }
         Default {
-            Write-Error -Message "Unsupported Provider: $($Script:CONFIG.Provider)"
-            return 
+            Write-Error -Message "Invalid or missing AI provider in configuration."
+            return $null
         }
-    }
-
-    return $Response
-}
-
-function Get-CommandHelpText {
-    param (
-        [string] $Command,
-        [switch] $IncludeAll  # If true, fetches help for all commands in a pipeline
-    )
-
-    if (-not $Command) {
-        return ""
-    }
-
-    # Split pipeline (`|` or `||` for robustness)
-    $Commands = $Command -split '\s*\|\s*'
-
-    if ($IncludeAll) {
-        # Get help for each command in the pipeline
-        $HelpTexts = $Commands | ForEach-Object { Get-SingleCommandHelp $_ }
-        return $HelpTexts -join "`n---`n"
-    }
-    else {
-        # Get help for the right-most command
-        return Get-SingleCommandHelp $Commands[-1]
-    }
-}
-
-function Get-SingleCommandHelp {
-    param ([string] $Cmd)
-
-    $CommandInfo = Get-Command $Cmd -ErrorAction SilentlyContinue
-
-    if ($CommandInfo -and $CommandInfo.CommandType -in @('Cmdlet', 'Function')) {
-        return Get-Help $Cmd -Full | Out-String
-    }
-    elseif ($CommandInfo -and $CommandInfo.CommandType -eq 'Application') {
-        try {
-            $HelpText = & $Cmd --help 2>&1 | Out-String
-            if (-not $HelpText) { $HelpText = & $Cmd -h 2>&1 | Out-String }
-            return $HelpText
-        }
-        catch {
-            return "No help available for $Cmd."
-        }
-    }
-    else {
-        return "Unknown command: $Cmd"
     }
 }
