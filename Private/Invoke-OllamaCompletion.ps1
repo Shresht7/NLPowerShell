@@ -2,7 +2,7 @@
 .SYNOPSIS
     Make a request to the Ollama API endpoint
 .DESCRIPTION
-    Makes a request to the local Ollama completions API endpoint with the given prompt
+    Sends a prompt to the Ollama API and returns the completion response
 .PARAMETER Prompt
     The natural language prompt to send to Ollama
 .PARAMETER URL
@@ -10,27 +10,37 @@
 .PARAMETER Model
     The Ollama model to use for completion
 #>
-function Invoke-OllamaCompletion(
-    # The prompt to use for completion
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string] $Prompt,
+function Invoke-OllamaCompletion {
+    [CmdletBinding()]
+    param (
+        # The prompt to use for completion
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Prompt,
 
-    # The URL of the API endpoint
-    [string] $URL = $Script:CONFIG.URL,
+        # The URL of the API endpoint
+        [string] $URL = $Script:CONFIG.URL,
 
-    # The Ollama model to use
-    [string] $Model = $Script:CONFIG.Model
-) {
+        # The Ollama model to use
+        [string] $Model = $Script:CONFIG.Model
+    )
+
     # Validate that a model is set
     if ([string]::IsNullOrWhiteSpace($Model)) {
         Write-Error "No model specified. Please set a model in your configuration before making requests."
         return $null
     }
 
+    # Validate that a URL is set
+    if ([string]::IsNullOrWhiteSpace($URL)) {
+        Write-Error "No API URL specified. Please set a valid Ollama API URL in your configuration."
+        return $null
+    }
+
+    # Construct API endpoint
     $APIEndpoint = "$URL/api/generate"
 
-    # Construct the request body with options
+    # Construct the request body
     $RequestBody = @{
         model   = $Model
         prompt  = $Prompt
@@ -38,7 +48,7 @@ function Invoke-OllamaCompletion(
         options = @{}
     }
 
-    # Add optional parameters if they are set in the configuration
+    # Add optional parameters if set in the configuration
     if ($Script:CONFIG.PSObject.Properties["Temperature"] -and $null -ne $Script:CONFIG.Temperature) {
         $RequestBody.options["temperature"] = $Script:CONFIG.Temperature
     }
@@ -51,8 +61,8 @@ function Invoke-OllamaCompletion(
         $RequestBody.options["num_predict"] = $Script:CONFIG.MaxTokens
     }
 
-    # Convert to JSON, ensuring correct depth for nested objects
-    $RequestJson = $RequestBody | ConvertTo-Json -Depth 2
+    # Convert request body to JSON
+    $RequestJson = $RequestBody | ConvertTo-Json -Depth 3 -Compress
 
     # Request Parameters
     $RequestParams = @{
@@ -68,9 +78,13 @@ function Invoke-OllamaCompletion(
         if ($null -ne $Response -and $Response.PSObject.Properties["response"]) {
             return $Response.response.Trim()
         }
+        else {
+            Write-Error "Ollama API responded with an unexpected format: $($Response | ConvertTo-Json -Depth 3)"
+            return $null
+        }
     }
     catch {
-        Write-Error "Failed to make request to Ollama API: $_"
+        Write-Error "Failed to make request to Ollama API: $($_.Exception.Message)"
         return $null
     }
 }
