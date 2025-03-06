@@ -6,11 +6,10 @@ function Export-NLPowerShellConfig(
     [Parameter(Mandatory)]
     [string] $Path
 ) {
-    $Extension = (Get-Item -Path $Path).Extension
-    if ($Extension -eq "json") {
+    if ($Path.EndsWith("json")) {
         $Script:CONFIG.SaveJSON($Path)
     }
-    elseif ($Extension -eq "xml") {
+    elseif ($Path.EndsWith("xml")) {
         $Script:CONFIG.SaveClixml($Path)
     }
     else {
