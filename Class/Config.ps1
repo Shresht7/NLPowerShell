@@ -33,7 +33,7 @@ class Config {
         if ($Settings.Provider) { $this.Provider = $Settings.Provider }
         if ($Settings.Model) { $this.Model = $Settings.Model }
         if ($Settings.URL) { $this.URL = $Settings.URL }
-        if ($Settings.API_KEY) { $this.API_KEY = $Settings.API_KEY }
+        if ($Settings.API_KEY) { $this.API_KEY = $Settings.API_KEY -as [securestring] }
         if ($Settings.Organization) { $this.Organization = $Settings.Organization }
         if ($Settings.N) { $this.N = $Settings.N }
         if ($Settings.MaxTokens) { $this.MaxTokens = $Settings.MaxTokens }
@@ -56,7 +56,7 @@ class Config {
         if ($Settings.Provider) { $this.Provider = $Settings.Provider }
         if ($Settings.Model) { $this.Model = $Settings.Model }
         if ($Settings.URL) { $this.URL = $Settings.URL }
-        if ($Settings.API_KEY) { $this.API_KEY = $Settings.API_KEY }
+        if ($Settings.API_KEY) { $this.API_KEY = $Settings.API_KEY -as [securestring] }
         if ($Settings.Organization) { $this.Organization = $Settings.Organization }
         if ($Settings.N) { $this.N = $Settings.N }
         if ($Settings.MaxTokens) { $this.MaxTokens = $Settings.MaxTokens }
@@ -84,55 +84,65 @@ class Config {
     #>
     static [Config] LoadClixml([string] $Path) {
         if (Test-Path -Path $Path) {
-            return Import-Clixml -Path $Path
+            return [Config](Import-Clixml -Path $Path)
         }
         return [Config]::new()
     }
 
-    # <#
-    # .SYNOPSIS
-    #     Saves the current configuration to a file in JSON format
-    # .DESCRIPTION
-    #     Converts the configuration to JSON. The API is converted from a securestring to its encrypted string representation
-    # .PARAMETER Path
-    #     The path to the JSON configuration file
-    # #>
-    # SaveJSON([string] $Path) {
-    #     # Create a copy to avoid modifying the original API_KEY property
-    #     $copy = $this.PSObject.Copy()
-    #     if ($this.API_KEY) {
-    #         # Convert the SecureString to an Encrypted String
-    #         $copy.API_KEY = $this.API_KEY | ConvertFrom-SecureString
-    #     }
-    #     $json = $copy | ConvertTo-Json -Depth 3
-    #     $json | Set-Content -Path $Path -Force
-    # }
+    <#
+    .SYNOPSIS
+        Saves the current configuration to a file in JSON format
+    .DESCRIPTION
+        Converts the configuration to JSON. The API is converted from a securestring to its encrypted string representation
+    .PARAMETER Path
+        The path to the JSON configuration file
+    #>
+    SaveJSON([string] $Path) {
+        # Create a copy to avoid modifying the original object
+        $copy = [ordered]@{}
+        foreach ($prop in $this.PSObject.Properties) {
+            if ($prop.Name -eq 'API_KEY' -and $this.API_KEY) {
+                # Convert SecureString to an encrypted string
+                $copy[$prop.Name] = ConvertFrom-SecureString -SecureString $this.API_KEY
+            }
+            else {
+                $copy[$prop.Name] = $prop.Value
+            }
+        }
+    
+        # Convert to JSON and write to file
+        $json = $copy | ConvertTo-Json -Depth 3
+        $json | Set-Content -Path $Path -Encoding UTF8 -Force
+    }
 
-    # <#
-    # .SYNOPSIS
-    #     Loads the configuration from a JSON file
-    # .DESCRIPTION
-    #     Reads the JSON file and reconstructs a Config object. The API key os converted from an encrypted string to a secure string
-    # .PARAMETER Path
-    #     The path to the JSON configuration file
-    # .OUTPUTS
-    #     Returns a Config object
-    # #>
-    # static [Config] LoadJSON([string] $Path) {
-    #     if (-not (Test-Path -Path $Path)) { return [Config]::new() }
-    #     $json = Get-Content -Path $Path -Raw | ConvertFrom-Json
-    #     $cfg = @{}
-    #     foreach ($prop in $json.PSObject.Properties) {
-    #         if ($prop.Value -eq 'API_KEY') {
-    #             if ($prop.Value -and $prop.Value -ne '') {
-    #                 $cfg.API_KEY = $prop.Value | ConvertTo-SecureString -Force
-    #             }
-    #         }
-    #         else {
-    #             $cfg.$($prop.Name) = $prop.Value
-    #         }
-    #     }
-    #     return $cfg
-    # }
+    <#
+    .SYNOPSIS
+        Loads the configuration from a JSON file
+    .DESCRIPTION
+        Reads the JSON file and reconstructs a Config object. The API key os converted from an encrypted string to a secure string
+    .PARAMETER Path
+        The path to the JSON configuration file
+    .OUTPUTS
+        Returns a Config object
+    #>
+    static [Config] LoadJSON([string] $Path) {
+        if (-not (Test-Path -Path $Path)) { return [Config]::new() }
+    
+        $json = Get-Content -Path $Path -Raw | ConvertFrom-Json
+        $cfg = [Config]::new()
+    
+        foreach ($prop in $json.PSObject.Properties) {
+            if ($prop.Name -eq 'API_KEY' -and $prop.Value) {
+                # Convert the encrypted string back to a SecureString
+                $cfg.API_KEY = ConvertTo-SecureString -String $prop.Value
+            }
+            else {
+                $cfg.$($prop.Name) = $prop.Value
+            }
+        }
+    
+        return $cfg
+    }
+    
 }
 
