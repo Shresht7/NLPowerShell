@@ -52,24 +52,30 @@ function Initialize-NLPowerShell {
 
     # Ollama Specific Configuration
     if ($Ollama) {
-        $Script:CONFIG.Provider = "ollama"
-        $Script:CONFIG.Model = $Model
-        $Script:CONFIG.URL = $URL
+        $Script:CONFIG.Update(@{
+                Provider = "ollama"
+                Model    = $Model
+                URL      = $URL
+            })
     }
     
     # OpenAI Specific Configuration
     if ($OpenAI) {
-        $Script:CONFIG.Provider = "openai"
-        $Script:CONFIG.Model = $Model
-        $Script:CONFIG.API_KEY = $API_KEY ?? (Read-Host -AsSecureString -Prompt "OpenAI API Key")
-        $Script:CONFIG.Organization = $Organization
-        $Script:CONFIG.N = $N
+        $Script:CONFIG.Update(@{
+                Provider     = "openai"
+                Model        = $Model
+                API_KEY      = $API_KEY ?? (Read-Host -AsSecureString -Prompt "OpenAI API Key")
+                Organization = $Organization
+                N            = $N
+            })
     }
 
     # Common Configuration
-    $Script:CONFIG.Temperature = $Temperature
-    $Script:CONFIG.TopP = $TopP
-    $Script:CONFIG.MaxTokens = $MaxTokens
+    $Script:CONFIG.Update(@{
+            Temperature = $Temperature
+            TopP        = $TopP
+            MaxTokens   = $MaxTokens
+        })
     
 
     # Register the key event handler

@@ -30,13 +30,15 @@ class Config {
 
     # Constructor: Initialize from hash-table
     Config([hashtable] $Settings) {
-        if ($Settings) {
-            foreach ($Key in $Settings.Keys) {
-                if ($this.PSObject.Properties.Name -contains $Key) {
-                    $this.$Key = $Settings[$Key]
-                }
-            }
-        }
+        if ($Settings.Provider) { $this.Provider = $Settings.Provider }
+        if ($Settings.Model) { $this.Model = $Settings.Model }
+        if ($Settings.URL) { $this.URL = $Settings.URL }
+        if ($Settings.API_KEY) { $this.API_KEY = $Settings.API_KEY }
+        if ($Settings.Organization) { $this.Organization = $Settings.Organization }
+        if ($Settings.N) { $this.N = $Settings.N }
+        if ($Settings.MaxTokens) { $this.MaxTokens = $Settings.MaxTokens }
+        if ($Settings.Temperature) { $this.Temperature = $Settings.Temperature }
+        if ($Settings.TopP) { $this.TopP = $Settings.TopP }
     }
 
     # Constructor: Empty
@@ -51,11 +53,15 @@ class Config {
         A hashtable where keys match property names
     #>
     Update([hashtable] $Settings) {
-        foreach ($Key in $Settings) {
-            if ($this.PSObject.Properties.Name -contains $Key) {
-                $this.$Key = $Settings[$Key]
-            }
-        }
+        if ($Settings.Provider) { $this.Provider = $Settings.Provider }
+        if ($Settings.Model) { $this.Model = $Settings.Model }
+        if ($Settings.URL) { $this.URL = $Settings.URL }
+        if ($Settings.API_KEY) { $this.API_KEY = $Settings.API_KEY }
+        if ($Settings.Organization) { $this.Organization = $Settings.Organization }
+        if ($Settings.N) { $this.N = $Settings.N }
+        if ($Settings.MaxTokens) { $this.MaxTokens = $Settings.MaxTokens }
+        if ($Settings.Temperature) { $this.Temperature = $Settings.Temperature }
+        if ($Settings.TopP) { $this.TopP = $Settings.TopP }
     }
 
     <#
