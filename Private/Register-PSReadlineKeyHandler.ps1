@@ -44,7 +44,7 @@ function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind)
                 # Replace input with generated command and keep the original comment
                 [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($SuggestedCommand -join "`n"))
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("    # $CommentPart")
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("  # $CommentPart")
             }
             
             # If no comment is found, generate an explanation
@@ -66,7 +66,7 @@ function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind)
                 # Append explanation as a comment
                 [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert(("  # " + ($SuggestedExplanation -join "`n    # ")))
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert(("  # " + ($SuggestedExplanation -join "`n # ")))
             }
         }
     }
