@@ -6,7 +6,9 @@ Inspired by: [Codex-CLI](https://github.com/microsoft/Codex-CLI)
 
 ![Demonstration](Docs/demo.gif)
 
-> **NOTE**: _Nothing is perfect!_ Read and verify AI-generated commands before running them. Treat them as if you found them on the internet—because they **are** commands from the internet. **Do not run** any command that you **do not understand**.
+> [!CAUTION]
+>
+> _Nothing is perfect!_ Read and verify AI-generated commands before running them. Treat them as if you found them on the internet—because they **are** commands from the internet. **Do not run** any command that you **do not understand**.
 
 ---
 
