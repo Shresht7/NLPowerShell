@@ -4,7 +4,7 @@ Use natural language to interact with PowerShell
 
 Inspired by: [Codex-CLI](https://github.com/microsoft/Codex-CLI)
 
-![Demonstration](Docs/demo.gif)
+![Demonstration](demo.gif)
 
 > [!CAUTION]
 >
