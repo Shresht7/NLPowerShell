@@ -84,5 +84,5 @@ function Initialize-NLPowerShell(
     }
 
     # Register the key event handler
-    Register-PSSReadlineKeyHandler -KeyBind $KeyBind
+    Register-PSReadLineKeyHandler -KeyBind $KeyBind
 }
