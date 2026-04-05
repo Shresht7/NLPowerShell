@@ -1,4 +1,4 @@
-function Register-PSReadLineKeyHandler([Parameter(Mandatory)][string] $KeyBind) {
+function Register-PSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind) {
     # Validate that PSReadLine is available
     if (-not (Get-Module -Name PSReadLine -ListAvailable)) {
         Write-Error "PSReadLine module is not installed. This function requires PSReadLine."
@@ -22,6 +22,15 @@ function Register-PSReadLineKeyHandler([Parameter(Mandatory)][string] $KeyBind) 
                 return
             }
 
+            # Local helper to handle error display
+            $HandleError = {
+                param($OriginalLine, $ErrorObj)
+                $Msg = if ($ErrorObj.Exception) { $ErrorObj.Exception.Message } else { $ErrorObj.ToString() }
+                $ShortMsg = $Msg.Split("`n")[0].Trim() # Keep only the first line
+                [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
+                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$OriginalLine # [Error: $ShortMsg]")
+            }
+
             # Check if the input contains a comment ("#")
             if ($Line -match "^(?<Command>.*?)\s*#\s*(?<Comment>.*)$") {
                 $CommandPart = $matches['Command'].Trim()
@@ -32,19 +41,22 @@ function Register-PSReadLineKeyHandler([Parameter(Mandatory)][string] $KeyBind) 
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert(" [Generating Command...]")
 
                 # Call AI function for command generation
-                $SuggestedCommand = Get-NLPowerShellCommand -Line $CommentPart -Command $CommandPart
+                try {
+                    $SuggestedCommand = Get-NLPowerShellCommand -Comment $CommentPart -Command $CommandPart -ErrorAction Stop
 
-                # Restore original line if no response
-                if ($null -eq $SuggestedCommand) {
+                    if ($null -eq $SuggestedCommand) {
+                        &$HandleError -OriginalLine $Line -ErrorObj "No response from AI"
+                        return
+                    }
+
+                    # Replace input with generated command and keep the original comment
                     [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
-                    [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
-                    return
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($SuggestedCommand -join "`n"))
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Insert("  # $CommentPart")
                 }
-
-                # Replace input with generated command and keep the original comment
-                [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($SuggestedCommand -join "`n"))
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert("  # $CommentPart")
+                catch {
+                    &$HandleError -OriginalLine $Line -ErrorObj $_
+                }
             }
             
             # If no comment is found, generate an explanation
@@ -54,19 +66,22 @@ function Register-PSReadLineKeyHandler([Parameter(Mandatory)][string] $KeyBind) 
                 [Microsoft.PowerShell.PSConsoleReadLine]::Insert("  # [Generating Explanation...]")
 
                 # Call AI function for explanation
-                $SuggestedExplanation = Get-NLPowerShellExplanation -Line $Line
+                try {
+                    $SuggestedExplanation = Get-NLPowerShellExplanation -Line $Line -ErrorAction Stop
 
-                # Restore original line if no response
-                if ($null -eq $SuggestedExplanation) {
+                    if ($null -eq $SuggestedExplanation) {
+                        &$HandleError -OriginalLine $Line -ErrorObj "No response from AI"
+                        return
+                    }
+
+                    # Append explanation as a comment
                     [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
                     [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
-                    return
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Insert(("  # " + ($SuggestedExplanation -join "`n # ")))
                 }
-
-                # Append explanation as a comment
-                [Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert($Line)
-                [Microsoft.PowerShell.PSConsoleReadLine]::Insert(("  # " + ($SuggestedExplanation -join "`n # ")))
+                catch {
+                    &$HandleError -OriginalLine $Line -ErrorObj $_
+                }
             }
         }
     }
