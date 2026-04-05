@@ -65,7 +65,7 @@ function Test-GeneratedCommand {
             foreach ($P in $UsedParams) {
                 $ParamName = $P.ParameterName
                 # Check for exact match or unambiguous prefix match (Standard PowerShell behavior)
-                $M = $AvailableParams | Where-Object { $_.StartsWith($ParamName, $true) }
+                $M = $AvailableParams | Where-Object { $_.StartsWith($ParamName, [System.StringComparison]::OrdinalIgnoreCase) }
                 if ($M.Count -eq 0) {
                     $Failures += "Parameter '-$ParamName' is invalid for command '$CmdName'."
                 }
