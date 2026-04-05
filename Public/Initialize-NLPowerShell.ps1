@@ -46,6 +46,7 @@ function Initialize-NLPowerShell(
     [bool] $EnableRetry,
 
     # Maximum number of retry attempts for self-correction
+    [ValidateRange(0, [int]::MaxValue)]
     [int] $MaxRetries,
 
     # The keybinding to use to trigger NLPowerShell

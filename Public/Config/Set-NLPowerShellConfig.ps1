@@ -18,7 +18,10 @@ function Set-NLPowerShellConfig(
     [double]$Temperature,
     [double]$TopP,
     [bool]$EnableRetry,
+
+    [ValidateRange(0, [int]::MaxValue)]
     [int]$MaxRetries,
+
     [string]$KeyBind
 ) {
     # Ensure Config object exists
