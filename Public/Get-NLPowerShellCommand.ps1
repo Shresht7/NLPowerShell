@@ -73,7 +73,7 @@ Output: git branch -D (git branch --format="%(refname:short)" | fzf --multi)
     # Construct the Messages
     $Messages = [System.Collections.Generic.List[hashtable]]::new()
     $Messages.Add(@{ role = "system"; content = $SystemPrompt })
-    $Messages.Add(@{ role = "user";   content = "# $Comment" })
+    $Messages.Add(@{ role = "user"; content = "# $Comment" })
 
     # Validation
     if (-not $Script:CONFIG.ActiveProvider) {
@@ -85,6 +85,12 @@ Output: git branch -D (git branch --format="%(refname:short)" | fzf --multi)
     $CurrentRetry = 0
     $MaxRetries = if ($Script:CONFIG.ActiveProvider.EnableRetry) { $Script:CONFIG.ActiveProvider.MaxRetries } else { 0 }
     $SuggestedCommand = $null
+
+    if ($MaxRetries -le 0) {
+        # If retries are disabled, just get one suggestion and return it
+        $SuggestedCommand = $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
+        return $SuggestedCommand
+    }
 
     while ($CurrentRetry -le $MaxRetries) {
         # Call AI function for completion
@@ -110,10 +116,11 @@ Please provide a valid alternative using only available PowerShell cmdlets, corr
 "@
 
             $Messages.Add(@{ role = "assistant"; content = $SuggestedCommand })
-            $Messages.Add(@{ role = "user";      content = $FailureMsg })
+            $Messages.Add(@{ role = "user"; content = $FailureMsg })
             
             $CurrentRetry++
-        } else {
+        }
+        else {
             # No retries left, exit loop with the last suggestion
             Write-Verbose "AI Hallucinated: $($Failures -join ' | '). Max retries reached."
             break
