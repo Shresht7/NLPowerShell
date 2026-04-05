@@ -43,6 +43,13 @@ PS> Get-Process | Sort-Object CPU -Descending | Select-Object -First 5  # Get a 
 > PS> git tag --list  # list all tags
 > ```
 
+
+> [!NOTE]
+> NLPowerShell automatically validates generated commands against your local system using the PowerShell AST. If the AI suggests a cmdlet or tool that isn't installed, the module will catch the error and automatically request a corrected alternative from the AI.
+
+> [!CAUTION]
+> This can lead to unexpected issues as we run `cmd --help` or `Get-Help` in the background to validate the command, which may have side effects (e.g. if the help command triggers an update or installation). See issue [#8](https://github.com/Shresht7/NLPowerShell/issues/8)
+
 ### 2. Get an Explanation
 
 ```powershell
@@ -54,9 +61,6 @@ Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Insert</kbd>
 ```powershell
 PS> Get-Command | Get-Random | Get-Help -Full  # Retrieve a random command and display its full help information.
 ```
-
-> [!NOTE]
-> NLPowerShell automatically validates generated commands against your local system using the PowerShell AST. If the AI suggests a cmdlet or tool that isn't installed, the module will catch the error and automatically request a corrected alternative from the AI.
 
 ---
 
