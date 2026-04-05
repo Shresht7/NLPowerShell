@@ -23,11 +23,13 @@ function Get-NLPowerShellExplanation(
 
     # Define the System Prompt
     $SystemPrompt = @"
-Explain the following PowerShell command in a concise, imperative manner.
-Provide a short explanation if it's simple, or a step-by-step breakdown if it's complex.
-$(if ($HelpTexts.Count -gt 0) { "`nReference Help Information:`n$($HelpTexts -join "`n---`n")" } else { "" })
+    Explain the following PowerShell command in a concise, imperative manner.
+    Provide a short, high-level explanation and avoid overexplaining or including unnecessary technical details.
+    Keep the response within a reasonable length (usually 1-3 sentences or a brief list).
+    $(if ($HelpTexts.Count -gt 0) { "`nReference Help Information:`n$($HelpTexts -join "`n---`n")" } else { "" })
 
-Examples:
+    Examples:
+    "@
 
 Input: Get-Process -Name notepad
 Output: List all running Notepad processes

@@ -26,11 +26,13 @@ function Get-NLPowerShellCommand(
 
     # Define the System Prompt
     $SystemPrompt = @"
-You are a PowerShell assistant. Convert the natural language request into a valid PowerShell command.
-Provide only the command itself—no explanations or formatting.
-$(if ($HelpText) { "`nHere is help information for the relevant command:`n$HelpText" } else { "" })
+    You are a PowerShell assistant. Convert the natural language request into a valid PowerShell command.
+    Provide ONLY the command itself—no explanations, markdown formatting, or preamble. 
+    Keep the response concise and within a reasonable length for a single terminal command.
+    $(if ($HelpText) { "`nHere is help information for the relevant command:`n$HelpText" } else { "" })
 
-Examples:
+    Examples:
+    "@
 
 Input: # List the 5 most CPU-intensive processes
 Output: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
