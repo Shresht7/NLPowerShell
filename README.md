@@ -88,24 +88,37 @@ Import-Module -Name <Path\To\This\Module>
 > 
 > ```powershell
 > Import-Module -Name NLPowerShell
-> Initialize-NLPowerShell -Ollama -Model "qwen2.5-coder" -Temperature 0.2
+> Initialize-NLPowerShell -Local -Model "qwen2.5-coder" -Temperature 0.2
 > ```
 
 ### 3. Initialize the configuration
 
-#### Using Ollama
+Add `Initialize-NLPowerShell` to your `$PROFILE`. If no parameters are provided, it will load settings from the [default configuration file](#-configuration).
+
+#### First-time Setup or Overrides
+
+You can initialize with specific parameters. Note that this sets the configuration for the **current session**. To save these settings permanently, see the [Configuration](#-configuration) section.
+
+**Using Local Inference (Ollama, llama.cpp, etc.)**
 
 ```powershell
-Initialize-NLPowerShell -Ollama -Model "llama3.2" 
+# Default (Ollama)
+Initialize-NLPowerShell -Local -Model "llama3.2" 
+
+# Custom Local (e.g. llama.cpp)
+Initialize-NLPowerShell -Local -Model "llama-3-8b" -URL "http://localhost:8080"
 ```
 
-#### Using OpenAI
+> [!TIP]
+> You can still use the `-Ollama` alias for the `-Local` parameter if you prefer.
+
+**Using OpenAI**
 
 ```powershell
-Initialize-NLPowerShell -OpenAI -Model "gpt-4" -API_KEY (Read-Host -AsSecureString -Prompt "OpenAI API Key") 
+Initialize-NLPowerShell -OpenAI -Model "gpt-4o" -API_KEY $mySecureKey
 ```
 
-or you can read configuration from a file
+**From a specific file**
 
 ```powershell
 Initialize-NLPowerShell -Path "Config.json"
@@ -127,27 +140,48 @@ Initialize-NLPowerShell -KeyBind "Ctrl+Insert"
 Get-NLPowerShellConfig
 ```
 
+### To find the configuration file path
+
+```powershell
+Get-NLPowerShellConfigPath
+```
+
+> [!NOTE]
+> 
+> The default location for the configuration is:
+> - **Windows:** `$env:LOCALAPPDATA\NLPowerShell\config.json`
+> - **Linux:** `~/.local/share/NLPowerShell/config.json`
+
 ### To update the configuration parameters
 
 ```powershell
 Set-NLPowerShellConfig -Provider Local -Model "llama3.2" -MaxTokens 64
 ```
 
-### To export the configuration to file
+### To save your current configuration to the default path
 
 ```powershell
-Export-NLPowerShellConfig -Path "Config.json"
-```
-or
-```powershell
-Export-NLPowerShellConfig -Path "config.xml"
+Export-NLPowerShellConfig -Path (Get-NLPowerShellConfigPath)
 ```
 
-### To import the configuration
+### Config File Format (JSON)
 
-```powershell
-Import-NLPowerShellConfig -Path "config.xml"
+If you prefer to edit the `config.json` file manually, here is an example of its structure:
+
+```json
+{
+  "KeyBind": "Ctrl+Shift+Insert",
+  "ProviderType": "LocalProvider",
+  "ProviderData": {
+    "BaseUrl": "http://localhost:11434/v1",
+    "Model": "llama3.2",
+    "MaxTokens": 64,
+    "Temperature": 0.1,
+    "TopP": 1.0
+  }
+}
 ```
+
 ---
 
 ## 📖 Examples
