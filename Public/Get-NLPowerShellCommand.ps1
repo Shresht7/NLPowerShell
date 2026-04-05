@@ -73,7 +73,7 @@ Output: git branch -D (git branch --format="%(refname:short)" | fzf --multi)
     # Construct the Messages
     $Messages = [System.Collections.Generic.List[hashtable]]::new()
     $Messages.Add(@{ role = "system"; content = $SystemPrompt })
-    $Messages.Add(@{ role = "user"; content = "# $Comment" })
+    $Messages.Add(@{ role = "user";   content = "# $Comment" })
 
     # Validation
     if (-not $Script:CONFIG.ActiveProvider) {
@@ -87,29 +87,35 @@ Output: git branch -D (git branch --format="%(refname:short)" | fzf --multi)
     $SuggestedCommand = $null
 
     while ($CurrentRetry -le $MaxRetries) {
+        # Call AI function for completion
         $SuggestedCommand = $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
         if ($null -eq $SuggestedCommand) { return $null }
 
-        # Validate the command
-        $MissingCommands = Test-GeneratedCommand -Script $SuggestedCommand
+        # Validate the command using AST
+        $Failures = Test-GeneratedCommand -Script $SuggestedCommand
         
-        # If no commands are missing, we are done
-        if ($MissingCommands.Count -eq 0) {
+        # If no failures are found, return the command
+        if ($Failures.Count -eq 0) {
             break
         }
 
-        # If we have retries left, inform the AI and try again
+        # If we have retries left, inform the AI of the specific issues and try again
         if ($CurrentRetry -lt $MaxRetries) {
-            Write-Verbose "AI Hallucinated: $($MissingCommands -join ', '). Retrying ($($CurrentRetry + 1)/$MaxRetries)..."
+            Write-Verbose "AI Hallucinated: $($Failures -join ' | '). Retrying ($($CurrentRetry + 1)/$MaxRetries)..."
             
+            $FailureMsg = @"
+The following issues were found in your previous suggestion:
+$( $Failures | ForEach-Object { "- $_" } | Out-String )
+Please provide a valid alternative using only available PowerShell cmdlets, correct parameters, and installed CLI tools.
+"@
+
             $Messages.Add(@{ role = "assistant"; content = $SuggestedCommand })
-            $Messages.Add(@{ role = "user"; content = "The following commands do not exist on this system: $($MissingCommands -join ', '). Please provide a valid alternative using only available PowerShell cmdlets or installed CLI tools." })
+            $Messages.Add(@{ role = "user";      content = $FailureMsg })
             
             $CurrentRetry++
-        }
-        else {
+        } else {
             # No retries left, exit loop with the last suggestion
-            Write-Verbose "AI Hallucinated: $($MissingCommands -join ', '). Max retries reached."
+            Write-Verbose "AI Hallucinated: $($Failures -join ' | '). Max retries reached."
             break
         }
     }
