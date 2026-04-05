@@ -21,12 +21,11 @@ function Get-NLPowerShellExplanation(
     $Commands = $Line -split '\s*\|\s*'
     $HelpTexts = @($Commands[0..([math]::Min(2, $Commands.Count - 1))] | ForEach-Object { Get-CommandHelpText -Command $_ })
 
-    # Construct AI Prompt
-    $Prompt = @"
+    # Define the System Prompt
+    $SystemPrompt = @"
 Explain the following PowerShell command in a concise, imperative manner.
 Provide a short explanation if it's simple, or a step-by-step breakdown if it's complex.
-
-$(if ($HelpTexts.Count -gt 0) { "Reference Help Information:`n$($HelpTexts -join "`n---`n")" } else { "" })
+$(if ($HelpTexts.Count -gt 0) { "`nReference Help Information:`n$($HelpTexts -join "`n---`n")" } else { "" })
 
 Examples:
 
@@ -65,18 +64,19 @@ Output: Select a random command and display its full help
 
 Input: git switch (git branch | fzf)
 Output: Interactively switch to a selected Git branch
-
-Input: $Line
-Output:
 "@
 
-    # Invoke AI completion
-    switch ($Script:CONFIG.Provider) {
-        "ollama" { return Invoke-OllamaCompletion -Prompt $Prompt }
-        "openai" { return Invoke-OpenAICompletion -Prompt $Prompt }
-        Default {
-            Write-Error -Message "Invalid or missing AI provider in configuration."
-            return $null
-        }
+    # Construct the User Message
+    $Messages = [System.Collections.Generic.List[hashtable]]::new()
+    $Messages.Add(@{ role = "system"; content = $SystemPrompt })
+    $Messages.Add(@{ role = "user";   content = $Line })
+
+    # Select AI Provider and get completion
+    if ($Script:CONFIG.ActiveProvider) {
+        return $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
+    }
+    else {
+        Write-Error "NLPowerShell is not initialized. Please run Initialize-NLPowerShell first."
+        return $null
     }
 }
