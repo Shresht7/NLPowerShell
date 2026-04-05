@@ -21,15 +21,20 @@ function Get-NLPowerShellExplanation(
     $Commands = $Line -split '\s*\|\s*'
     $HelpTexts = @($Commands[0..([math]::Min(2, $Commands.Count - 1))] | ForEach-Object { Get-CommandHelpText -Command $_ })
 
+    # Gather Environment Context
+    $EnvContext = Get-EnvironmentContext
+
     # Define the System Prompt
     $SystemPrompt = @"
-    Explain the following PowerShell command in a concise, imperative manner.
-    Provide a short, high-level explanation and avoid overexplaining or including unnecessary technical details.
-    Keep the response within a reasonable length (usually 1-3 sentences or a brief list).
-    $(if ($HelpTexts.Count -gt 0) { "`nReference Help Information:`n$($HelpTexts -join "`n---`n")" } else { "" })
+Explain the following PowerShell command in a concise, imperative manner.
+Provide a short, high-level explanation and avoid overexplaining or including unnecessary technical details.
+Keep the response within a reasonable length (usually 1-3 sentences or a brief list).
 
-    Examples:
-    "@
+Current Session Context:
+$EnvContext
+$(if ($HelpTexts.Count -gt 0) { "`nReference Help Information:`n$($HelpTexts -join "`n---`n")" } else { "" })
+
+Examples:
 
 Input: Get-Process -Name notepad
 Output: List all running Notepad processes
@@ -71,7 +76,7 @@ Output: Interactively switch to a selected Git branch
     # Construct the User Message
     $Messages = [System.Collections.Generic.List[hashtable]]::new()
     $Messages.Add(@{ role = "system"; content = $SystemPrompt })
-    $Messages.Add(@{ role = "user";   content = $Line })
+    $Messages.Add(@{ role = "user"; content = $Line })
 
     # Select AI Provider and get completion
     if ($Script:CONFIG.ActiveProvider) {

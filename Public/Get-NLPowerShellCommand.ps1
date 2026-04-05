@@ -24,15 +24,20 @@ function Get-NLPowerShellCommand(
     $HelpText = if ($Command) { Get-CommandHelpText -Command $Command } else { @() }
     $HelpText = $HelpText -join "`n"
 
+    # Gather Environment Context
+    $EnvContext = Get-EnvironmentContext
+
     # Define the System Prompt
     $SystemPrompt = @"
-    You are a PowerShell assistant. Convert the natural language request into a valid PowerShell command.
-    Provide ONLY the command itself—no explanations, markdown formatting, or preamble. 
-    Keep the response concise and within a reasonable length for a single terminal command.
-    $(if ($HelpText) { "`nHere is help information for the relevant command:`n$HelpText" } else { "" })
+You are a PowerShell assistant. Convert the natural language request into a valid PowerShell command.
+Provide ONLY the command itself—no explanations, markdown formatting, or preamble. 
+Keep the response concise and within a reasonable length for a single terminal command.
 
-    Examples:
-    "@
+Current Session Context:
+$EnvContext
+$(if ($HelpText) { "`nRelevant Command Help:`n$HelpText" } else { "" })
+
+Examples:
 
 Input: # List the 5 most CPU-intensive processes
 Output: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
@@ -68,7 +73,7 @@ Output: git branch -D (git branch --format="%(refname:short)" | fzf --multi)
     # Construct the User Message
     $Messages = [System.Collections.Generic.List[hashtable]]::new()
     $Messages.Add(@{ role = "system"; content = $SystemPrompt })
-    $Messages.Add(@{ role = "user";   content = "# $Comment" })
+    $Messages.Add(@{ role = "user"; content = "# $Comment" })
 
     # Select AI Provider and get completion
     if ($Script:CONFIG.ActiveProvider) {
