@@ -74,7 +74,15 @@ function Invoke-ChatCompletion {
     try {
         $Response = Invoke-RestMethod @RequestParams
         if ($Response -and $Response.choices -and $Response.choices.Count -gt 0) {
-            return $Response.choices[0].message.content.Trim()
+            $Content = $Response.choices[0].message.content.Trim()
+            
+            # Sanitize: Strip markdown code blocks if present
+            # Matches ```[language] ... ``` or just ``` ... ```
+            if ($Content -match "(?s)``````(?:[a-zA-Z0-9-]*\n)?(.*?)\n?``````") {
+                $Content = $matches[1].Trim()
+            }
+
+            return $Content
         }
         else {
             Write-Error "Unexpected response format from API: $($Response | ConvertTo-Json -Depth 3)"
