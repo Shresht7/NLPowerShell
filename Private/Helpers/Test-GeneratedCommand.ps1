@@ -106,7 +106,8 @@ function Test-GeneratedCommand {
 
                     if (-not [string]::IsNullOrWhiteSpace($HelpText)) {
                         # Validate Subcommand if it was identified
-                        if ($Subcommand -and $HelpText -notmatch "\b$Subcommand\b") {
+                        $EscapedSubcommand = [regex]::Escape($Subcommand)
+                        if ($Subcommand -and $HelpText -notmatch "\b$EscapedSubcommand\b") {
                             # Note: This is a heuristic. Some tools don't list subcommands in help.
                             # We check if it looks like a valid subcommand via exit code
                             & $CmdName $Subcommand --help > $null 2>&1
