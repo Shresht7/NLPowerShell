@@ -100,7 +100,7 @@ Add `Initialize-NLPowerShell` to your `$PROFILE`. If no parameters are provided,
 
 #### First-time Setup or Overrides
 
-You can initialize with specific parameters. Note that this sets the configuration for the **current session**. To save these settings permanently, see the [Configuration](#-configuration) section.
+You can initialize with specific parameters for the current session.
 
 **Using Local Inference (Ollama, llama.cpp, etc.)**
 
@@ -137,53 +137,31 @@ Initialize-NLPowerShell -KeyBind "Ctrl+Insert"
 
 ## ⚙️ Configuration
 
-### To view the configuration
+### Commands
 
-```powershell
-Get-NLPowerShellConfig
-```
+| Command                      | Description                                        |
+| ---------------------------- | -------------------------------------------------- |
+| `Get-NLPowerShellConfig`     | View current session settings.                     |
+| `Set-NLPowerShellConfig`     | Update settings (e.g., `-Model`, `-Temperature`).  |
+| `Get-NLPowerShellConfigPath` | Get the location of the `config.json` file.        |
+| `Export-NLPowerShellConfig`  | Save current session settings to the default file. |
+| `Import-NLPowerShellConfig`  | Load settings from the default file.               |
 
-### To find the configuration file path
+### Configuration Parameters
 
-```powershell
-Get-NLPowerShellConfigPath
-```
+| Parameter     | Default             | Description                                         |
+| ------------- | ------------------- | --------------------------------------------------- |
+| `Model`       | -                   | The AI model to use (e.g., `gpt-4o`, `llama3.2`).   |
+| `Temperature` | `0.1`               | Higher values (up to 1.0) make output more random.  |
+| `MaxTokens`   | `128`               | Maximum length of the generated response.           |
+| `EnableRetry` | `$true`             | Whether to automatically retry if validation fails. |
+| `MaxRetries`  | `1`                 | Number of self-correction attempts to make.         |
+| `KeyBind`     | `Ctrl+Shift+Insert` | The keybinding to trigger NLPowerShell.             |
 
-> [!NOTE]
-> 
-> The default location for the configuration is:
-> - **Windows:** `$env:LOCALAPPDATA\NLPowerShell\config.json`
-> - **Linux:** `~/.local/share/NLPowerShell/config.json`
+### Storage Locations
 
-### To update the configuration parameters
-
-```powershell
-Set-NLPowerShellConfig -Provider Local -Model "llama3.2" -MaxTokens 64
-```
-
-### To save your current configuration to the default path
-
-```powershell
-Export-NLPowerShellConfig -Path (Get-NLPowerShellConfigPath)
-```
-
-### Config File Format (JSON)
-
-If you prefer to edit the `config.json` file manually, here is an example of its structure:
-
-```json
-{
-  "KeyBind": "Ctrl+Shift+Insert",
-  "ProviderType": "LocalProvider",
-  "ProviderData": {
-    "BaseUrl": "http://localhost:11434/v1",
-    "Model": "llama3.2",
-    "MaxTokens": 128,
-    "Temperature": 0.1,
-    "TopP": 1.0
-  }
-}
-```
+- **Windows:** `$env:LOCALAPPDATA\NLPowerShell\config.json`
+- **Linux:** `~/.local/share/NLPowerShell/config.json`
 
 ---
 
