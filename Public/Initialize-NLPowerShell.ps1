@@ -11,8 +11,6 @@
     Initialize-NLPowerShell -Model "llama3.1:70b"
 .EXAMPLE
     Initialize-NLPowerShell -Local -Model "llama3.2"
-.EXAMPLE
-    Initialize-NLPowerShell -OpenAI -Model "gpt-4o" -API_KEY $myKey
 #>
 function Initialize-NLPowerShell(
     [Parameter(ParameterSetName = "Local")]
@@ -43,6 +41,13 @@ function Initialize-NLPowerShell(
     [double] $Temperature,
     
     [double] $TopP,
+
+    # Whether to enable AI self-correction retry
+    [bool] $EnableRetry,
+
+    # Maximum number of retry attempts for self-correction
+    [ValidateRange(0, [int]::MaxValue)]
+    [int] $MaxRetries,
 
     # The keybinding to use to trigger NLPowerShell
     [string] $KeyBind
@@ -84,6 +89,8 @@ function Initialize-NLPowerShell(
         if ($PSBoundParameters.ContainsKey("MaxTokens")) { $Script:CONFIG.ActiveProvider.MaxTokens = $MaxTokens }
         if ($PSBoundParameters.ContainsKey("Temperature")) { $Script:CONFIG.ActiveProvider.Temperature = $Temperature }
         if ($PSBoundParameters.ContainsKey("TopP")) { $Script:CONFIG.ActiveProvider.TopP = $TopP }
+        if ($PSBoundParameters.ContainsKey("EnableRetry")) { $Script:CONFIG.ActiveProvider.EnableRetry = $EnableRetry }
+        if ($PSBoundParameters.ContainsKey("MaxRetries")) { $Script:CONFIG.ActiveProvider.MaxRetries = $MaxRetries }
         
         # Local URL
         if ($PSBoundParameters.ContainsKey("URL") -and ($Script:CONFIG.ActiveProvider -is [LocalProvider])) {

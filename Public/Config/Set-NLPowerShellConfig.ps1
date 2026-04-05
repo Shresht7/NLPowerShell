@@ -6,7 +6,7 @@
 .EXAMPLE
     Set-NLPowerShellConfig -Model "gpt-4o"
 .EXAMPLE
-    Set-NLPowerShellConfig -Temperature 0.7 -MaxTokens 128
+    Set-NLPowerShellConfig -Temperature 0.7 -MaxTokens 256 -EnableRetry $true -MaxRetries 3
 #>
 function Set-NLPowerShellConfig(
     [ValidateSet("OpenAI", "Local")]
@@ -17,6 +17,11 @@ function Set-NLPowerShellConfig(
     [int]$MaxTokens,
     [double]$Temperature,
     [double]$TopP,
+    [bool]$EnableRetry,
+
+    [ValidateRange(0, [int]::MaxValue)]
+    [int]$MaxRetries,
+
     [string]$KeyBind
 ) {
     # Ensure Config object exists
@@ -42,13 +47,14 @@ function Set-NLPowerShellConfig(
     }
 
     # Update Provider Properties
-    if ($PSBoundParameters.ContainsKey("Model")) {
-        $Script:CONFIG.ActiveProvider.Model = $Model
-        Write-Host "Updated Model: $Model" -ForegroundColor Cyan
-    }
+    if ($PSBoundParameters.ContainsKey("Model")) { $Script:CONFIG.ActiveProvider.Model = $Model }
+    if ($PSBoundParameters.ContainsKey("MaxTokens")) { $Script:CONFIG.ActiveProvider.MaxTokens = $MaxTokens }
+    if ($PSBoundParameters.ContainsKey("Temperature")) { $Script:CONFIG.ActiveProvider.Temperature = $Temperature }
+    if ($PSBoundParameters.ContainsKey("TopP")) { $Script:CONFIG.ActiveProvider.TopP = $TopP }
+    if ($PSBoundParameters.ContainsKey("EnableRetry")) { $Script:CONFIG.ActiveProvider.EnableRetry = $EnableRetry }
+    if ($PSBoundParameters.ContainsKey("MaxRetries")) { $Script:CONFIG.ActiveProvider.MaxRetries = $MaxRetries }
 
     if ($PSBoundParameters.ContainsKey("ApiKey")) {
-        # Check if the property exists (some providers might not use it)
         if ($Script:CONFIG.ActiveProvider.PSObject.Properties["ApiKey"]) {
             $Script:CONFIG.ActiveProvider.ApiKey = $ApiKey
             Write-Host "API Key updated." -ForegroundColor Cyan
@@ -57,26 +63,9 @@ function Set-NLPowerShellConfig(
 
     if ($PSBoundParameters.ContainsKey("URL")) {
         if ($Script:CONFIG.ActiveProvider.PSObject.Properties["BaseUrl"]) {
-            # Map URL to BaseUrl for OpenAI-compatible providers
             $Script:CONFIG.ActiveProvider.BaseUrl = if ($Script:CONFIG.ActiveProvider -is [LocalProvider]) { "$($URL.TrimEnd('/'))/v1" } else { $URL }
             Write-Host "Updated API URL: $URL" -ForegroundColor Cyan
         }
-    }
-
-    # Update Common Parameters
-    if ($PSBoundParameters.ContainsKey("MaxTokens")) {
-        $Script:CONFIG.ActiveProvider.MaxTokens = $MaxTokens
-        Write-Host "Updated MaxTokens: $MaxTokens" -ForegroundColor Cyan
-    }
-
-    if ($PSBoundParameters.ContainsKey("Temperature")) {
-        $Script:CONFIG.ActiveProvider.Temperature = $Temperature
-        Write-Host "Updated Temperature: $Temperature" -ForegroundColor Cyan
-    }
-
-    if ($PSBoundParameters.ContainsKey("TopP")) {
-        $Script:CONFIG.ActiveProvider.TopP = $TopP
-        Write-Host "Updated TopP: $TopP" -ForegroundColor Cyan
     }
 
     # Update KeyBind

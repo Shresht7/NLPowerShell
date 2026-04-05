@@ -3,7 +3,7 @@
     Converts a natural language prompt into a PowerShell command.
 .DESCRIPTION
     This function takes a natural language description of a task and generates a valid PowerShell command.
-    It uses the configured AI provider (Ollama or OpenAI) to generate the command.
+    It uses the configured AI provider (Local or OpenAI) to generate the command.
 .EXAMPLE
     Get-NLPowerShellCommand -Comment "List the 5 most CPU-intensive processes"
     Returns: Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
@@ -70,17 +70,62 @@ Input: # Interactively select and remove git branches
 Output: git branch -D (git branch --format="%(refname:short)" | fzf --multi)
 "@
 
-    # Construct the User Message
+    # Construct the Messages
     $Messages = [System.Collections.Generic.List[hashtable]]::new()
     $Messages.Add(@{ role = "system"; content = $SystemPrompt })
     $Messages.Add(@{ role = "user"; content = "# $Comment" })
 
-    # Select AI Provider and get completion
-    if ($Script:CONFIG.ActiveProvider) {
-        return $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
-    }
-    else {
+    # Validation
+    if (-not $Script:CONFIG.ActiveProvider) {
         Write-Error "NLPowerShell is not initialized. Please run Initialize-NLPowerShell first."
         return $null
     }
+
+    # Generation & Retry Loop
+    $CurrentRetry = 0
+    $MaxRetries = if ($Script:CONFIG.ActiveProvider.EnableRetry) { $Script:CONFIG.ActiveProvider.MaxRetries } else { 0 }
+    $SuggestedCommand = $null
+
+    if ($MaxRetries -le 0) {
+        # If retries are disabled, just get one suggestion and return it
+        $SuggestedCommand = $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
+        return $SuggestedCommand
+    }
+
+    while ($CurrentRetry -le $MaxRetries) {
+        # Call AI function for completion
+        $SuggestedCommand = $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
+        if ($null -eq $SuggestedCommand) { return $null }
+
+        # Validate the command using AST
+        $Failures = Test-GeneratedCommand -Script $SuggestedCommand
+        
+        # If no failures are found, return the command
+        if ($Failures.Count -eq 0) {
+            break
+        }
+
+        # If we have retries left, inform the AI of the specific issues and try again
+        if ($CurrentRetry -lt $MaxRetries) {
+            Write-Verbose "AI Hallucinated: $($Failures -join ' | '). Retrying ($($CurrentRetry + 1)/$MaxRetries)..."
+            
+            $FailureMsg = @"
+The following issues were found in your previous suggestion:
+$( $Failures | ForEach-Object { "- $_" } | Out-String )
+Please provide a valid alternative using only available PowerShell cmdlets, correct parameters, and installed CLI tools.
+"@
+
+            $Messages.Add(@{ role = "assistant"; content = $SuggestedCommand })
+            $Messages.Add(@{ role = "user"; content = $FailureMsg })
+            
+            $CurrentRetry++
+        }
+        else {
+            # No retries left, exit loop with the last suggestion
+            Write-Verbose "AI Hallucinated: $($Failures -join ' | '). Max retries reached."
+            break
+        }
+    }
+
+    return $SuggestedCommand
 }
