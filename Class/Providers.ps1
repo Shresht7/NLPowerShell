@@ -93,18 +93,17 @@ class OpenAIProvider : OpenAICompatibleProvider {
 
 <#
 .SYNOPSIS
-    Specialized Ollama Provider using the OpenAI-compatible endpoint
+    Specialized Local Provider (Ollama, llama.cpp, etc.) using the OpenAI-compatible endpoint
 .DESCRIPTION
-    This provider is specifically for the Ollama API.
-    It sets the base URL to the Ollama API endpoint and requires a model name.
-     Ollama's API is OpenAI-compatible, so it can use the same logic as the OpenAI provider.
+    This provider is for local inference engines.
+    It defaults to the Ollama endpoint but can be pointed to any OpenAI-compatible local API.
 #>
-class OllamaProvider : OpenAICompatibleProvider {
-    OllamaProvider([string] $URL, [string] $Model) {
+class LocalProvider : OpenAICompatibleProvider {
+    LocalProvider([string] $URL, [string] $Model) {
         $this.BaseUrl = "$($URL.TrimEnd('/'))/v1"
         $this.Model = $Model
     }
-    OllamaProvider() {
+    LocalProvider() {
         $this.BaseUrl = "http://localhost:11434/v1"
     }
 }

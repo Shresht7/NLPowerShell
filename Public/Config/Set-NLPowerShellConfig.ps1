@@ -9,7 +9,7 @@
     Set-NLPowerShellConfig -Temperature 0.7 -MaxTokens 128
 #>
 function Set-NLPowerShellConfig(
-    [ValidateSet("OpenAI", "Ollama")]
+    [ValidateSet("OpenAI", "Local")]
     [string]$Provider,
     [string]$Model,
     [string]$URL,
@@ -29,8 +29,8 @@ function Set-NLPowerShellConfig(
         if ($Provider -eq "OpenAI") {
             $Script:CONFIG.ActiveProvider = [OpenAIProvider]::new()
         }
-        elseif ($Provider -eq "Ollama") {
-            $Script:CONFIG.ActiveProvider = [OllamaProvider]::new()
+        elseif ($Provider -eq "Local") {
+            $Script:CONFIG.ActiveProvider = [LocalProvider]::new()
         }
         Write-Host "Switched Provider to: $Provider" -ForegroundColor Cyan
     }
@@ -58,7 +58,7 @@ function Set-NLPowerShellConfig(
     if ($PSBoundParameters.ContainsKey("URL")) {
         if ($Script:CONFIG.ActiveProvider.PSObject.Properties["BaseUrl"]) {
             # Map URL to BaseUrl for OpenAI-compatible providers
-            $Script:CONFIG.ActiveProvider.BaseUrl = if ($Script:CONFIG.ActiveProvider -is [OllamaProvider]) { "$($URL.TrimEnd('/'))/v1" } else { $URL }
+            $Script:CONFIG.ActiveProvider.BaseUrl = if ($Script:CONFIG.ActiveProvider -is [LocalProvider]) { "$($URL.TrimEnd('/'))/v1" } else { $URL }
             Write-Host "Updated API URL: $URL" -ForegroundColor Cyan
         }
     }

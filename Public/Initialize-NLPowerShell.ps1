@@ -2,13 +2,17 @@
 .SYNOPSIS
     Initializes the NLPowerShell configuration
 .DESCRIPTION
-    Sets up the configuration for either Ollama or OpenAI
+    Sets up the configuration for either a Local inference engine (Ollama, llama.cpp) or OpenAI.
 .EXAMPLE
-    Get-NLPowerShellConfig -Path "C:\path\to\config.json"
+    Initialize-NLPowerShell -Local -Model "llama3.2"
+.EXAMPLE
+    Initialize-NLPowerShell -OpenAI -Model "gpt-4o" -API_KEY $myKey
 #>
 function Initialize-NLPowerShell(
-    [Parameter(Mandatory, ParameterSetName = "Ollama")]
-    [switch] $Ollama,
+    [Parameter(Mandatory, ParameterSetName = "Local")]
+    [Alias("Ollama")]
+    [switch] $Local,
+
     [Parameter(Mandatory, ParameterSetName = "OpenAI")]
     [switch] $OpenAI,
 
@@ -19,8 +23,8 @@ function Initialize-NLPowerShell(
     [Parameter(Mandatory)]
     [string] $Model,
 
-    # The URL address of the running Ollama instance
-    [Parameter(ParameterSetName = "Ollama")]
+    # The URL address of the running local instance (default: http://localhost:11434)
+    [Parameter(ParameterSetName = "Local")]
     [string] $URL = "http://localhost:11434",
 
     # The OpenAI `API_KEY` for authentication.
@@ -46,9 +50,9 @@ function Initialize-NLPowerShell(
         $Script:CONFIG = [Config]::new()
         $Script:CONFIG.KeyBind = $KeyBind
 
-        # Ollama Specific Configuration
-        if ($Ollama) {
-            $Script:CONFIG.ActiveProvider = [OllamaProvider]::new($URL, $Model)
+        # Local Specific Configuration
+        if ($Local) {
+            $Script:CONFIG.ActiveProvider = [LocalProvider]::new($URL, $Model)
         }
         
         # OpenAI Specific Configuration
