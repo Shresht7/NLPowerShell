@@ -18,6 +18,12 @@ class LLMProvider {
     # The nucleus sampling probability (0.0 = only top tokens, 1.0 = all tokens)
     [double] $TopP = 1
 
+    # Whether to enable the self-correction retry mechanism for generated commands
+    [bool] $EnableRetry = $true    
+
+    # The maximum number of retries to attempt if self-correction is enabled and the generated command fails validation
+    [int] $MaxRetries = 3
+
     # Constructor
     LLMProvider([string] $Model) {
         $this.Model = $Model
