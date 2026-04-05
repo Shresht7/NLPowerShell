@@ -130,7 +130,7 @@ Get-NLPowerShellConfig
 ### To update the configuration parameters
 
 ```powershell
-Set-NLPowerShellConfig -Provider Ollama -Model "llama3.2" -MaxTokens 64
+Set-NLPowerShellConfig -Provider Local -Model "llama3.2" -MaxTokens 64
 ```
 
 ### To export the configuration to file
