@@ -2,18 +2,24 @@
 .SYNOPSIS
     Write the NLPowerShell configuration to a file.
 .DESCRIPTION
-    Exports the current configuration to a JSON or XML file.
+    Exports the current configuration to a JSON or XML file. 
+    Defaults to the platform-specific default path if no path is provided.
 .PARAMETER Path
     The file path where the configuration should be saved. Must be .json or .xml.
 #>
 function Export-NLPowerShellConfig(
-    [Parameter(Mandatory)]
-    [string] $Path
+    [string] $Path = ([Config]::GetDefaultPath())
 ) {
     # Ensure $Script:CONFIG exists
     if ($null -eq $Script:CONFIG) {
         Write-Error "Configuration object is not set. Cannot export."
         return
+    }
+
+    # Ensure the directory exists
+    $Dir = Split-Path -Path $Path
+    if ($Dir -and -not (Test-Path -Path $Dir)) {
+        New-Item -ItemType Directory -Path $Dir -Force | Out-Null
     }
 
     # Get file extension

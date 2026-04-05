@@ -3,12 +3,12 @@
     Read the NLPowerShell configuration from a file.
 .DESCRIPTION
     Loads the configuration from a JSON or XML file and sets $Script:CONFIG.
+    Defaults to the platform-specific default path if no path is provided.
 .PARAMETER Path
     The file path where the configuration should be loaded from. Must be .json or .xml.
 #>
 function Import-NLPowerShellConfig(
-    [Parameter(Mandatory)]
-    [string] $Path
+    [string] $Path = ([Config]::GetDefaultPath())
 ) {
     # Ensure the file exists before proceeding
     if (-not (Test-Path -Path $Path)) {
