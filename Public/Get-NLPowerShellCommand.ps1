@@ -70,17 +70,32 @@ Input: # Interactively select and remove git branches
 Output: git branch -D (git branch --format="%(refname:short)" | fzf --multi)
 "@
 
-    # Construct the User Message
+    # Construct the Messages
     $Messages = [System.Collections.Generic.List[hashtable]]::new()
     $Messages.Add(@{ role = "system"; content = $SystemPrompt })
     $Messages.Add(@{ role = "user"; content = "# $Comment" })
 
-    # Select AI Provider and get completion
-    if ($Script:CONFIG.ActiveProvider) {
-        return $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
-    }
-    else {
+    # First Attempt
+    if (-not $Script:CONFIG.ActiveProvider) {
         Write-Error "NLPowerShell is not initialized. Please run Initialize-NLPowerShell first."
         return $null
     }
+    $SuggestedCommand = $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
+    if ($null -eq $SuggestedCommand) { return $null }
+
+    # Validation & Auto-Retry
+    $MissingCommands = Test-GeneratedCommand -Script $SuggestedCommand
+    if ($MissingCommands.Count -gt 0) {
+        Write-Verbose "AI Hallucinated: $($MissingCommands -join ', '). Retrying..."
+
+        # Add the hallucinated command and the error message to the conversation
+        $Messages.Add(@{ role = "assistant"; content = $SuggestedCommand })
+        $Messages.Add(@{ role = "user"; content = "The following commands do not exist on this system: $($MissingCommands -join ', '). Please provide a valid alternative using only available PowerShell cmdlets or installed CLI tools." })
+
+        # Second Attempt
+        $SuggestedCommand = $Script:CONFIG.ActiveProvider.GetCompletion($Messages)
+    }
+
+    return $SuggestedCommand
 }
+
