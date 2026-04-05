@@ -73,6 +73,7 @@
         "Get-NLPowerShellCommand",
         "Get-NLPowerShellExplanation",
         "Initialize-NLPowerShell",
+        "Get-NLPowerShellConfigPath",
         "Export-NLPowerShellConfig",
         "Import-NLPowerShellConfig",
         "Get-NLPowerShellConfig",
