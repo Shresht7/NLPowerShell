@@ -90,7 +90,7 @@ function Test-GeneratedCommand {
             $Flags = $Node.CommandElements | Where-Object { 
                 ($_ -is [System.Management.Automation.Language.CommandParameterAst]) -or 
                 ($_ -is [System.Management.Automation.Language.StringConstantExpressionAst] -and $_.Value.StartsWith("-"))
-            } | ForEach-Object { if ($_ -is [System.Management.Automation.Language.CommandParameterAst]) { "-$($_.ParameterName)" } else { $_.Value } }
+            } | ForEach-Object { if ($_ -is [System.Management.Automation.Language.CommandParameterAst]) { "-$($_.Extent.Text)" } else { $_.Value } }
 
             # Fetch help text for verification (if subcommand exists, fetch its specific help if possible)
             if ($Subcommand -or $Flags.Count -gt 0) {
