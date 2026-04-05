@@ -10,7 +10,7 @@ class LLMProvider {
     [string] $Model
 
     # The maximum number of tokens to generate in the completion
-    [int] $MaxTokens = 64
+    [int] $MaxTokens = 128
 
     # The sampling temperature to use for generation (0.0 = deterministic, higher = more random)
     [double] $Temperature = 0.1

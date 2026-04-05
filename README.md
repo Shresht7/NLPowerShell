@@ -175,7 +175,7 @@ If you prefer to edit the `config.json` file manually, here is an example of its
   "ProviderData": {
     "BaseUrl": "http://localhost:11434/v1",
     "Model": "llama3.2",
-    "MaxTokens": 64,
+    "MaxTokens": 128,
     "Temperature": 0.1,
     "TopP": 1.0
   }
