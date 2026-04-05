@@ -3,6 +3,9 @@
     Initializes the NLPowerShell configuration
 .DESCRIPTION
     Sets up the configuration for either a Local inference engine (Ollama, llama.cpp) or OpenAI.
+    If no parameters are provided, it attempts to load the configuration from the default location.
+.EXAMPLE
+    Initialize-NLPowerShell
 .EXAMPLE
     Initialize-NLPowerShell -Local -Model "llama3.2"
 .EXAMPLE
@@ -46,6 +49,17 @@ function Initialize-NLPowerShell(
     if ($PSCmdlet.ParameterSetName -eq "Config") {
         Import-NLPowerShellConfig -Path $Path
     }
+    elseif ($PSCmdlet.ParameterSetName -eq "__AllParameterSets" -or $null -eq $PSCmdlet.ParameterSetName) {
+        # No parameters provided, try loading from default path
+        $DefaultPath = [Config]::GetDefaultPath()
+        if (Test-Path $DefaultPath) {
+            Import-NLPowerShellConfig -Path $DefaultPath
+        }
+        else {
+            Write-Warning "No configuration found at $DefaultPath. Please initialize with parameters first."
+            return
+        }
+    }
     else {
         $Script:CONFIG = [Config]::new()
         $Script:CONFIG.KeyBind = $KeyBind
@@ -69,5 +83,7 @@ function Initialize-NLPowerShell(
     }
 
     # Register the key event handler
-    Register-PSReadLineKeyHandler -KeyBind $Script:CONFIG.KeyBind
+    if ($Script:CONFIG) {
+        Register-PSReadLineKeyHandler -KeyBind $Script:CONFIG.KeyBind
+    }
 }
