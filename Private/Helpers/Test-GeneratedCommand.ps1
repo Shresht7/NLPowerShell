@@ -19,16 +19,30 @@ function Test-GeneratedCommand {
     # If the script is empty or whitespace, return an empty array (no commands to validate)
     if ([string]::IsNullOrWhiteSpace($Script)) { return @() }
 
-    # 1Parse the generated script
+    # List of validation failure messages to return
+    $Failures = @()
+
+    # Parse the generated script
     $Errors = $null
     $Tokens = $null
     $AST = [System.Management.Automation.Language.Parser]::ParseInput($Script, [ref]$Tokens, [ref]$Errors)
 
+    if ($Errors) {
+        foreach ($ParseError in $Errors) {
+            $ExtentText = $ParseError.Extent.Text
+            if ([string]::IsNullOrWhiteSpace($ExtentText)) {
+                $Failures += "Syntax error: $($ParseError.Message)"
+            }
+            else {
+                $Failures += "Syntax error: $($ParseError.Message) Near: $ExtentText"
+            }
+        }
+
+        return $Failures | Select-Object -Unique
+    }
+
     # Find all CommandAst nodes in the AST (these represent command invocations. e.g. Get-ChildItem, git etc.)
     $CommandNodes = $AST.FindAll({ $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true)
-    
-    # List of validation failure messages to return
-    $Failures = @()
 
     # Iterate over each command node and validate it
     foreach ($Node in $CommandNodes) {
