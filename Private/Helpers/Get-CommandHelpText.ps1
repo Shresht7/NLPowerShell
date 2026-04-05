@@ -1,58 +1,70 @@
 <#
 .SYNOPSIS
-    Retrieves help documentation for all commands
+    Retrieves help documentation for all commands in a string.
 .DESCRIPTION
-    This function extracts each command from a given pipeline and retrieves its help text.
-    Works for PowerShell cmdlets, functions, and external applications.
+    Uses the PowerShell AST parser to identify all command calls in the input string
+    and retrieves their help documentation.
 .PARAMETER Command
-    The pipeline or standalone command to retrieve help for.
-.EXAMPLE
-    Get-CommandHelpText "Get-Process | Select-Object"
-    # Returns help for both Get-Process and Select-Object.
-.EXAMPLE
-    Get-CommandHelpText "grep -r 'test' ."
-    # Returns help for 'grep' if available.
-.NOTES
-    - Uses `Get-Help` for PowerShell commands.
-    - Uses `--help` or `-h` for external applications.
+    The PowerShell script or command string to analyze.
 #>
 function Get-CommandHelpText(
     [Parameter(Mandatory)]
     [string] $Command
 ) {
-    if (-not $Command) {
-        return @("No command provided.")
+    if ([string]::IsNullOrWhiteSpace($Command)) {
+        return @()
     }
 
-    # Split on pipeline (`|` and `||`), ensuring robust splitting
-    $Commands = $Command -split '\s*\|\|?\s*'
+    # Parse the input string into an AST
+    $Errors = $null
+    $Tokens = $null
+    $AST = [System.Management.Automation.Language.Parser]::ParseInput($Command, [ref]$Tokens, [ref]$Errors)
 
-    return $Commands | ForEach-Object {
-        $Cmd = $_.Trim()
+    # Extract all CommandAst nodes (actual command calls)
+    $CommandNodes = $AST.FindAll({ $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true)
+    
+    # Get unique command names
+    $CommandNames = $CommandNodes | ForEach-Object { $_.GetCommandName() } | Select-Object -Unique | Where-Object { $_ }
+
+    if ($null -eq $CommandNames) {
+        return @()
+    }
+
+    return $CommandNames | ForEach-Object {
+        $Cmd = $_
         $CommandInfo = Get-Command $Cmd -ErrorAction SilentlyContinue
 
-        if ($CommandInfo -and $CommandInfo.CommandType -in @('Cmdlet', 'Function')) {
-            try {
-                return Get-Help $Cmd -Full -ErrorAction SilentlyContinue | Out-String
-            }
-            catch {
-                return "Help unavailable for PowerShell command: $Cmd"
-            }
-        }
-        elseif ($CommandInfo -and ($CommandInfo.CommandType -eq 'Application' -or $CommandInfo.Source)) {
-            try {
-                if (Test-Path (Get-Command $Cmd).Source) {
-                    $HelpText = & $Cmd --help 2>&1 | Out-String
-                    if (-not $HelpText) { $HelpText = & $Cmd -h 2>&1 | Out-String }
-                    return $HelpText.Trim() -ne "" ? $HelpText : "No help available for $Cmd."
+        if ($CommandInfo) {
+            # Use the resolved name for PowerShell commands
+            $ResolvedName = $CommandInfo.Name
+
+            if ($CommandInfo.CommandType -in @('Cmdlet', 'Function', 'Filter', 'Alias')) {
+                try {
+                    # Retrieve full help for PowerShell commands
+                    $Help = Get-Help $ResolvedName -Full -ErrorAction SilentlyContinue | Out-String
+                    if (-not [string]::IsNullOrWhiteSpace($Help)) {
+                        return "--- Help for $ResolvedName ---`n$($Help.Trim())"
+                    }
                 }
+                catch {}
             }
-            catch {
-                return "Failed to retrieve help for external command: $Cmd"
+            elseif ($CommandInfo.CommandType -eq 'Application') {
+                try {
+                    # For external applications, attempt to get help via flags
+                    # We redirect stderr to stdout to capture all output
+                    $HelpText = & $Cmd --help 2>&1 | Out-String
+                    if ([string]::IsNullOrWhiteSpace($HelpText)) { 
+                        $HelpText = & $Cmd -h 2>&1 | Out-String 
+                    }
+                    
+                    if (-not [string]::IsNullOrWhiteSpace($HelpText)) {
+                        return "--- Help for $Cmd (External) ---`n$($HelpText.Trim())"
+                    }
+                }
+                catch {}
             }
         }
-        else {
-            return "Unknown command: $Cmd"
-        }
+        
+        return "No detailed help found for command: $Cmd"
     }
 }
