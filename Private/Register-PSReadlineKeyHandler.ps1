@@ -1,4 +1,4 @@
-function Register-PSSReadlineKeyHandler([Parameter(Mandatory)][string] $KeyBind) {
+function Register-PSReadLineKeyHandler([Parameter(Mandatory)][string] $KeyBind) {
     # Validate that PSReadLine is available
     if (-not (Get-Module -Name PSReadLine -ListAvailable)) {
         Write-Error "PSReadLine module is not installed. This function requires PSReadLine."

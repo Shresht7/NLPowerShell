@@ -4,7 +4,7 @@ Use natural language to interact with PowerShell
 
 Inspired by: [Codex-CLI](https://github.com/microsoft/Codex-CLI)
 
-![Demonstration](Docs/demo.gif)
+![Demonstration](demo.gif)
 
 > [!CAUTION]
 >
@@ -130,7 +130,7 @@ Get-NLPowerShellConfig
 ### To update the configuration parameters
 
 ```powershell
-Set-NLPowerShellConfig -Provider Ollama -Model "llama3.2" -MaxTokens 64
+Set-NLPowerShellConfig -Provider Local -Model "llama3.2" -MaxTokens 64
 ```
 
 ### To export the configuration to file

@@ -2,13 +2,17 @@
 .SYNOPSIS
     Initializes the NLPowerShell configuration
 .DESCRIPTION
-    Sets up the configuration for either Ollama or OpenAI
+    Sets up the configuration for either a Local inference engine (Ollama, llama.cpp) or OpenAI.
 .EXAMPLE
-    Get-NLPowerShellConfig -Path "C:\path\to\config.json"
+    Initialize-NLPowerShell -Local -Model "llama3.2"
+.EXAMPLE
+    Initialize-NLPowerShell -OpenAI -Model "gpt-4o" -API_KEY $myKey
 #>
 function Initialize-NLPowerShell(
-    [Parameter(Mandatory, ParameterSetName = "Ollama")]
-    [switch] $Ollama,
+    [Parameter(Mandatory, ParameterSetName = "Local")]
+    [Alias("Ollama")]
+    [switch] $Local,
+
     [Parameter(Mandatory, ParameterSetName = "OpenAI")]
     [switch] $OpenAI,
 
@@ -19,70 +23,51 @@ function Initialize-NLPowerShell(
     [Parameter(Mandatory)]
     [string] $Model,
 
-    # The URL address of the running Ollama instance
-    [Parameter(ParameterSetName = "Ollama")]
+    # The URL address of the running local instance (default: http://localhost:11434)
+    [Parameter(ParameterSetName = "Local")]
     [string] $URL = "http://localhost:11434",
 
-    # The OpenAI `API_KEY` for authentication. This is required to make api requests to OpenAI.
+    # The OpenAI `API_KEY` for authentication.
     [Parameter(Mandatory, ParameterSetName = "OpenAI")]
     [securestring] $API_KEY,
 
-    # Users can belong to multiple organizations, you can specify which organization is used for an API request.
-    # Usage from these API requests will count against the specified organization's subscription quota.
-    [Parameter(ParameterSetName = "OpenAI")]
-    [string] $Organization,
-
     # The maximum number of tokens to generate in the completion
-    [int] $MaxTokens,
+    [int] $MaxTokens = 64,
     
-    # The sampling temperature to use. Higher values mean the model will take more risks.
-    # Higher values are for creative applications, and 0 for well-defined answers.
+    # The sampling temperature to use.
     [double] $Temperature = 0.1,
     
     [double] $TopP = 1,
-    
-    # How many completions to generate for each prompt
-    [Parameter(ParameterSetName = "OpenAI")]
-    [int] $N = 1,
 
     # The keybinding to use to trigger NLPowerShell
     [string] $KeyBind = "Ctrl+Shift+Insert"
 ) {    
     # Initialize the Config Object
     if ($PSCmdlet.ParameterSetName -eq "Config") {
-        $Script:CONFIG = Import-NLPowerShellConfig -Path $Path
+        Import-NLPowerShellConfig -Path $Path
     }
     else {
         $Script:CONFIG = [Config]::new()
+        $Script:CONFIG.KeyBind = $KeyBind
 
-        # Ollama Specific Configuration
-        if ($Ollama) {
-            $Script:CONFIG.Update(@{
-                    Provider = "ollama"
-                    Model    = $Model
-                    URL      = $URL
-                })
+        # Local Specific Configuration
+        if ($Local) {
+            $Script:CONFIG.ActiveProvider = [LocalProvider]::new($URL, $Model)
         }
         
         # OpenAI Specific Configuration
         if ($OpenAI) {
-            $Script:CONFIG.Update(@{
-                    Provider     = "openai"
-                    Model        = $Model
-                    API_KEY      = $API_KEY ?? (Read-Host -AsSecureString -Prompt "OpenAI API Key")
-                    Organization = $Organization
-                    N            = $N
-                })
+            $Script:CONFIG.ActiveProvider = [OpenAIProvider]::new($Model, $API_KEY)
         }
     
         # Common Configuration
-        $Script:CONFIG.Update(@{
-                Temperature = $Temperature
-                TopP        = $TopP
-                MaxTokens   = $MaxTokens
-            })   
+        if ($Script:CONFIG.ActiveProvider) {
+            $Script:CONFIG.ActiveProvider.MaxTokens = $MaxTokens
+            $Script:CONFIG.ActiveProvider.Temperature = $Temperature
+            $Script:CONFIG.ActiveProvider.TopP = $TopP
+        }
     }
 
     # Register the key event handler
-    Register-PSSReadlineKeyHandler -KeyBind $KeyBind
+    Register-PSReadLineKeyHandler -KeyBind $Script:CONFIG.KeyBind
 }
