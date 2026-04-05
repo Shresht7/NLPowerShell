@@ -108,3 +108,89 @@ class OllamaProvider : OpenAICompatibleProvider {
         $this.BaseUrl = "http://localhost:11434/v1"
     }
 }
+
+<#
+.SYNOPSIS
+    Configuration class for the NLPowerShell module
+#>
+class Config {
+    # The active LLM provider (Ollama, OpenAI, etc.)
+    [LLMProvider] $ActiveProvider
+
+    # The keybinding to use to trigger NLPowerShell. Defaults to Ctrl+Shift+Insert
+    [string] $KeyBind = "Ctrl+Shift+Insert"
+
+    # Constructor: Empty
+    Config() {}
+
+    <#
+    .SYNOPSIS
+        Saves the current configuration to a file in Clixml format
+    #>
+    SaveClixml([string] $Path) {
+        $this | Export-Clixml -Path $Path -Force
+    }
+
+    <#
+    .SYNOPSIS
+        Loads the configuration from a Clixml file
+    #>
+    static [Config] LoadClixml([string] $Path) {
+        if (Test-Path -Path $Path) {
+            return [Config](Import-Clixml -Path $Path)
+        }
+        return [Config]::new()
+    }
+
+    <#
+    .SYNOPSIS
+        Saves the current configuration to a file in JSON format
+    #>
+    SaveJSON([string] $Path) {
+        $ConfigData = [ordered]@{
+            KeyBind      = $this.KeyBind
+            ProviderType = $this.ActiveProvider.GetType().Name
+            ProviderData = @{}
+        }
+
+        foreach ($prop in $this.ActiveProvider.PSObject.Properties) {
+            if ($prop.Name -eq 'ApiKey' -and $prop.Value) {
+                $ConfigData.ProviderData[$prop.Name] = ConvertFrom-SecureString -SecureString $prop.Value
+            }
+            else {
+                $ConfigData.ProviderData[$prop.Name] = $prop.Value
+            }
+        }
+
+        $json = $ConfigData | ConvertTo-Json -Depth 3
+        $json | Set-Content -Path $Path -Encoding UTF8 -Force
+    }
+
+    <#
+    .SYNOPSIS
+        Loads the configuration from a JSON file
+    #>
+    static [Config] LoadJSON([string] $Path) {
+        if (-not (Test-Path -Path $Path)) { return [Config]::new() }
+
+        $json = Get-Content -Path $Path -Raw | ConvertFrom-Json
+        $cfg = [Config]::new()
+
+        if ($json.KeyBind) { $cfg.KeyBind = $json.KeyBind }
+
+        if ($json.ProviderType -and $json.ProviderData) {
+            $Provider = New-Object -TypeName $json.ProviderType
+            foreach ($prop in $json.ProviderData.PSObject.Properties) {
+                if ($prop.Name -eq 'ApiKey' -and $prop.Value) {
+                    $Provider.ApiKey = ConvertTo-SecureString -String $prop.Value
+                }
+                else {
+                    $Provider.$($prop.Name) = $prop.Value
+                }
+            }
+            $cfg.ActiveProvider = $Provider
+        }
+
+        return $cfg
+    }
+}
