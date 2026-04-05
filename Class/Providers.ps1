@@ -124,6 +124,21 @@ class Config {
 
     <#
     .SYNOPSIS
+        Returns the default platform-specific configuration path
+    #>
+    static [string] GetDefaultPath() {
+        $IsWin = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)
+        $Root = if ($IsWin) { 
+            Join-Path $env:LOCALAPPDATA "NLPowerShell"
+        }
+        else { 
+            Join-Path $env:HOME ".local" "share" "NLPowerShell"
+        }
+        return Join-Path $Root "Config.json"
+    }
+
+    <#
+    .SYNOPSIS
         Saves the current configuration to a file in Clixml format
     #>
     SaveClixml([string] $Path) {

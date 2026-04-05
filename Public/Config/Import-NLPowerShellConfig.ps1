@@ -27,6 +27,7 @@ function Import-NLPowerShellConfig(
                 if ($null -eq $Config) { throw "Failed to load JSON configuration." }
                 $Script:CONFIG = $Config
                 Write-Host "Configuration loaded successfully from $Path (JSON format)"
+                return $Config
             }
             catch {
                 Write-Error "Error loading JSON configuration: $_"
@@ -38,6 +39,7 @@ function Import-NLPowerShellConfig(
                 if ($null -eq $Config) { throw "Failed to load XML configuration." }
                 $Script:CONFIG = $Config
                 Write-Host "Configuration loaded successfully from $Path (XML format)"
+                return $Config
             }
             catch {
                 Write-Error "Error loading XML configuration: $_"
