@@ -55,6 +55,9 @@ Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Insert</kbd>
 PS> Get-Command | Get-Random | Get-Help -Full  # Retrieve a random command and display its full help information.
 ```
 
+> [!NOTE]
+> NLPowerShell automatically validates generated commands against your local system using the PowerShell AST. If the AI suggests a cmdlet or tool that isn't installed, the module will catch the error and automatically request a corrected alternative from the AI.
+
 ---
 
 ## 📦 Installation
