@@ -100,7 +100,7 @@ Import-Module -Name <Path\To\This\Module>
 
 ### 3. Initialize the configuration
 
-Add `Initialize-NLPowerShell` to your `$PROFILE`. If no parameters are provided, it will load settings from the [default configuration file](#-configuration).
+Add `Initialize-NLPowerShell` to your `$PROFILE`. If no parameters are provided, it will load settings from the default configuration file.
 
 #### First-time Setup or Overrides
 
